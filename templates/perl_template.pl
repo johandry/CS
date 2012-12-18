@@ -3,74 +3,64 @@
 #Title       : _NAME_.pl
 #Date Created: _DATE_
 #Last Edit   : _DATE_
-#Author      : "Johandry Amador" < jamador@_EMAIL_.com >
+#Author      : "Johandry Amador" < _EMAIL_ >
 #Version     : 1.00
 #Description : _DESCRIPTION_
-#Usage       : _NAME_.pl [--help|-h] [--verbose|-v] _USAGE_
+#Usage       : _NAME_.pl [--help or -h] [--verbose] _USAGE_
 
 # Requirements:
-# _REQUIREMENT_
-# _REQUIREMENT_
+# _REQUIREMENT_ 
+
+# General TODO's:
+# _TODO_
 
 use strict;
 use warnings;
 use Getopt::Long;
 use Pod::Usage;
-# use Log::Log4perl qw(:easy);
 
-# Remove this section if Log module is installed
-# BEGIN LOG SECTION
-# Define a log file if needed. If not log will go to STDOUT and STDERR
-my $LOG_FILE='';
+# Global variables
 
-# Subrutine to print a Debug message as Log4perl module is not available
-# TODO: Print to STDERR and log file if defined.
-sub DEBUG {
-  print "@_\n";
-}
 
-# Subrutine to print an error message and exit as Log4perl module is not available
-# TODO: Print to STDERR and log file if defined.
-sub LOGDIE {
-  print "@_\n";
-  exit 1;
-}
 
-# Subrutine to print a message as Log4perl module is not available
-# TODO: Print to log file if defined.
-sub INFO {
-  print "@_\n";
-}
-# END LOG SECTION
+# Options or script parameters handling section
 
+our $VERSION=2.00;
 my $verbose='';
-my $ip='';
 my $help='';
-# TODO: Define a VERSION variable to printed by default with the option --version
-my $VERSION=2.00;
 
-GetOptions('verbose'=>\$verbose, 'ip=s'=>\$ip, 'help|?'=>\$help) or pod2usage(2);
+
+#Getopt::Long::Configure ("bundling", "ignorecase_always");
+GetOptions(
+  'verbose'=>\$verbose,
+  'help|?'=>\$help,
+  
+  ) or pod2usage(2);
 pod2usage(1) if $help;
 
-# SUBRUTINE CODE SECTION
+print STDERR "Parameters: \n\tVerbose: $verbose\n\tHelp: $help\n\t  \n" if $verbose;
 
-# MAIN CODE SECTION
+# Subrutine code section
 
-# DOCUMENTATION POD SECTION
+
+# Main code section
+
+
+# Documentation pod section
 
 __END__
 
 =head1 NAME
 
-_NAME_.pl - _DESCRIPTION_
+_NAME_.pl - _DESCRIPTION_ 
 
 =head1 SYNOPSIS
 
-_NAME_.pl [--help|-h] [--verbose|-v] _USAGE_
+_NAME_.pl [--help or -h] [--verbose] _USAGE_
 
  Options:
-   --help    | -h           Brief help message
-   --verbose | -v           Provide mor information. Use it for debugging only.
+   --help    or -h                         Brief help message
+   --verbose                               Provide more information. Useful for debugging.
 
 
 =head1 OPTIONS
@@ -83,15 +73,21 @@ Print a brief help message and exits.
 
 For more information enter: B<perldoc _NAME_.pl>
 
-=item B<--verbose> or B<-v>
+=item B<--verbose>
 
-Print more information ...
+Print more information, useful for debugging purposes. 
+
+The verbose output is sent to the Standar Error so you may send the verbose to a file using this at the end of the command: 2>delete.me
+
+
 
 =back
 
 =head1 DESCRIPTION
 
-B<This program> will _DESCRIPTION_
+B<This program> _DESCRIPTION_.
+
+B<Author>: "Johandry Amador" < _EMAIL_ >
 
 =cut
 
