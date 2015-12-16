@@ -16,7 +16,7 @@ SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 SCRIPT_NAME="$( basename "$0" )"
 LOG_FILE=/tmp/${SCRIPT_NAME%.*}.log
 
-VERSION='1.0.0'
+COMMON_VERSION='1.0.1'
 
 log () {
   msg="\x1B[${3};1m[${1}]\x1B[0m\t${2}\n"
@@ -67,3 +67,40 @@ usage () {
 
 [[ "${1}" == "-h" || "${1}" == "--help" ]] && usage
 
+common_upgrade(){
+  info TODO
+}
+
+common_version(){
+  info "Common Utilities version ${COMMON_VERSION}"
+
+  tmpfile=$(mktemp /tmp/common.sh.XXXXXX)
+  curl -k -s -o ${tmpfile} https://raw.githubusercontent.com/johandry/CS/master/common.sh
+
+  upgrade_required=0
+
+  latest_version=$(grep COMMON_VERSION /tmp/common.sh | cut -f2 -d= | tr -d "'")
+  info "Common Utilities latest version ${latest_version}"
+  [[ ${latest_version} != ${COMMON_VERSION} ]] && upgrade_required=1
+  [[ ${upgrade_required} -eq 1 ]] && warn "Versions are different (${latest_version} <> ${COMMON_VERSION})"
+
+  if [[ ${upgrade_required} -eq 0 ]]
+    then
+    current_md5=$(md5 -q ~/bin/common.sh)
+    latest_md5=$(md5 -q ${tmpfile})
+
+    [[ "${current_md5}" != "${latest_md5}" ]] && \
+      warn "Files are different. Update the version variable in GitHub" && \
+      upgrade_required=1
+  fi
+
+  if [[ ${upgrade_required} -eq 1 ]]
+    then
+    echo -ne "Common Utilities is not the latest version, do you want to update now? \x1B[94;1m(Y/n)\x1B[0m: "
+    read -r -n 1 response
+    response=${response,,} # to lower case
+    [[ ${response} =~ ^(y| ) ]] && common_upgrade
+  fi
+  
+  rm "${tmpfile}"
+}
