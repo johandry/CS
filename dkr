@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#=======================================================================================================
+# Author: Johandry Amador <johandry@gmail.com>
+# Title:  Do docker actions to manage a container with CentOS.
+#
+# Usage: {script_name} [ -h | --help | run | start | attach | stop | destroy | status | pull ]
+#
+# Options:
+#     -h, --help    Display this help message. bash {script_name} -h
+#     run           Build, start and login to the container with CentOS.
+#     start         Start the container with CentOS. The container need to exists.
+#     attach        Login to the container. The container need to be running.
+#     stop          Stop the container with CentOS.
+#     destroy       Stop and delete the container with CentOS.
+#     status        Show the status of the container.
+#     pull          Pull (download) the image for CentOS.
+#
+# Description: The script will manage all the possible actions with a Docker container running CentOS. 
+#
+# Report Issues or create Pull Requests in http://github.com/johandry/
+#=======================================================================================================
+
+source "${HOME}/bin/common.sh"
+
+attach() {
+  echo "Press enter"
+  docker attach "${cname}"
+  exit 0
+}
+
+destroy() {
+  c=$(docker ps -a --filter "name=${cname}" | wc -l | bc)
+  [[ ${c} -eq 2 ]] && docker rm "${cname}" && exit 0
+  # If executed once, will remove the container.
+  # If executed twice (there is no container), will remove the image
+  docker rmi "${image}"
+  exit 0
+}
+
+run() {
+  docker run --name "${cname}" -it "${image}" /bin/bash
+  exit 0
+}
+
+start() {
+  docker start "${cname}"
+  exit 0
+}
+
+status() {
+  docker ps -a --filter "name=${cname}" --format "Container ${cname} ({{.ID}}) is {{.Status}}"
+  exit 0
+}
+
+stop() {
+  docker stop "${cname}"
+  exit 0
+}
+
+pull() {
+  docker pull "${image}"
+  exit 0
+}
+
+build() {
+  [[ ! -e ./Dockerfile ]] && error "No Dockerfile found"
+  cache=
+  [[ $no_cache -eq 1 ]] && cache="--no-cache"
+  docker build ${cache} -t="${image}" .
+  exit 0
+}
+
+[[ -z ${1} ]]           && usage && exit 1
+
+[[ ! -e ./dkr_rc ]] && error "Missing configuration file dkr_rc file"
+source ./dkr_rc
+
+[[ ${1} == "run" ]]     && run  
+[[ ${1} == "start" ]]   && start 
+[[ ${1} == "attach" ]]  && attach 
+[[ ${1} == "stop" ]]    && stop 
+[[ ${1} == "destroy" ]] && destroy 
+[[ ${1} == "status" ]]  && status 
+[[ ${1} == "pull" ]]    && pull 
+[[ ${1} == "build" ]]   && build 

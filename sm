@@ -1,0 +1,543 @@
+#!/usr/bin/env bash
+
+#=======================================================================================================
+# Author: Johandry Amador <johandry@gmail.com>
+# Title:  Servers Management
+#
+# Usage: {script_name} <action>
+#
+# Actions:
+#     -h, --help                  Display this help message. bash {script_name} -h
+#     -v, --version               Display the current version and the latest version.
+#     <option> -h                 Every option has its own help with -h
+#     -d                          Debug mode. Useful during development.
+#     --update                    Update the script to the latest version.
+#     access                      Grant password-less access to All the servers by sending the public SSH key
+#     access <server>             Grant password-less access to the <server> by sending the public SSH key
+#     access -f <file>            Grant password-less access to all the servers listed in <file>
+#     check                       Verify the password-less access to All the servers.
+#     check <server>              Verify the password-less access to the <server>.
+#     check -f <file>             Verify the password-less access to all the servers listed in <file>.
+#     list                        List all the server
+#     list [-q] <servers>         Find the server that match with <servers> and print the environment where they are. <servers> can be a list of servers. 
+#                                 There is one servers file per environment. -q will not print any output, the result is in the exit code.
+#     scp <file> <server>         Transfer a file to the server using scp. The server may be a partial name of a server name.
+#     get <file> <server>         Get a file from the server using scp. The server may be a partial name of a server name.
+#     exec <command> <server>     Execute the command in the server
+#     exec <command> -f <file>    Execute the command in all the servers listed in <file>
+#     -u [<user>]                 Show the user used to login to the servers. If not provided, will set the user to login to the servers. By default user is $USER or /User/$USER if not the same.
+#     <server> [--local|--newtab] Login to the server. The server may be a partial name of a server name. 
+#                                 In OSX Terminal, the new session will be open in a new tab by default (-newtab). Use --local to open it in the current tab.
+#
+# Description: This script is to execute some actions to the servers listed in the environment servers files.
+#   Create file(s) with '.servers' extension to list all the servers to have access. These files will be in the ./servers/ directory
+#   All the files transfered from a server will be stored in the ./files/ directory.
+#
+# Report Issues or create Pull Requests in http://github.com/johandry/
+#=======================================================================================================
+
+
+source ~/bin/common.sh
+
+COMMON_VERSION=${VERSION}
+VERSION='1.1.0'
+
+# This will only works for OSX where all the users are located in /Users/<username>. 
+# Usualy $USER env variable and /User/$USER have the same value. If not, we will use /User/$USER
+# This value can be overwrited with option -u <USER>
+USER=${HOME##/Users/}
+
+COMMANDS_BLACK_LIST="rm /etc/shadow shutdown reboot"
+#COMMANDS_BLACK_LIST=""
+
+# Set DEBUG to 1 using parameter -d in case you need it.
+DEBUG=0
+
+show_version(){
+  info "Server Management version ${VERSION}"
+  info "Common Utilities version ${COMMON_VERSION}"
+}
+
+update_sm(){
+  info TODO
+}
+
+access_usage(){
+  echo "Access usage:"
+  echo "    ${SCRIPT_NAME} access                    Grant password-less access to all the servers located in the ./*.servers files by sending the public SSH key"
+  echo "    ${SCRIPT_NAME} access <server>           Grant password-less access to the <server> by sending the public SSH key"
+  echo "    ${SCRIPT_NAME} access -f <file>          Grant password-less access to all the servers listed in <file>"
+}
+
+check_usage(){
+  echo "Check usage:"
+  echo "    ${SCRIPT_NAME} check                     Verify the password-less access to all the servers."
+  echo "    ${SCRIPT_NAME} check <server>            Verify the password-less access to the <server>."
+  echo "    ${SCRIPT_NAME} check -f <file>           Verify the password-less access to all the servers listed in <file>."
+}
+
+list_usage(){
+  echo "List usage:"
+  echo "    ${SCRIPT_NAME} list                      List all the server"
+  echo "    ${SCRIPT_NAME} list [-q] <servers>       Find the server that match with <servers> and print the environment where they are. <servers> can be a list of servers."
+  echo "                                 There is one servers file per environment. -q will not print any output, the result is in the exit code."
+}
+
+scp_usage(){
+  echo "SCP usage:"
+  echo "    ${SCRIPT_NAME} scp <file> <server>       Transfer a file to the server using scp. The server may be a partial name of a server name."
+}
+
+get_usage(){
+  echo "Get usage:"
+  echo "    ${SCRIPT_NAME} get <file> <server>       Get a file from the server using scp. The server may be a partial name of a server name."
+}
+
+exec_usage(){
+  echo "Exec usage:"
+  echo "    ${SCRIPT_NAME} -u [<user>]              Show the user used to login to the servers. If not provided, will set the user to login to the servers. By default user is $USER or /User/$USER if not the same."
+}
+
+user_usage(){
+  echo "User usage:"
+  echo "    ${SCRIPT_NAME} exec <command> <server>   Execute the command in the server"
+  echo "    ${SCRIPT_NAME} exec <command> -f <file>  Execute the command in all the servers listed in <file>"
+}
+
+show_user() {
+  info "Using \x1B[93;1m$USER\x1B[0m to login to the servers"
+}
+
+check_passwdless_access_to() {
+  server=$1
+  responce=$(ssh -oBatchMode=yes -q ${USER}@${server} 'echo OK')
+  [[ "${responce}" == "OK" ]] && echo 0 && return 0
+  echo 1 && return 1
+}
+
+print_passwdless_access_to() {
+  [[ -z ${1} ]] && error "Enter a server" && exit 1
+  validate_server $1
+  server=$(get_server_from $1)
+  access=$(check_passwdless_access_to ${server})
+  if [[ ${access} -eq 0 ]] 
+    then
+    ok "${server}"
+  else
+    error "${server}"
+  fi
+}
+
+print_passwdless_access_to_all_servers() {
+  rm -f no_access.servers
+  for server in $(cat *.servers); do
+    access=$(check_passwdless_access_to ${server})
+    if [[ ${access} -eq 0 ]]
+      then
+      ok "${server}" 
+    else 
+      error "${server}"
+      echo ${server} >> no_access.servers
+    fi
+  done
+}
+
+print_passwdless_access_to_servers_in_file(){
+  file=$1
+  [[ -z "${file}" ]] && error "Missing file" && exit 1
+  [ ! -e "${file}" ]] && error "File ${file} not found" && exit 1
+
+  rm -f no_access.servers
+  for server in $(cat $file); do
+    access=$(check_passwdless_access_to ${server})
+    if [[ ${access} -eq 0 ]]
+      then
+      ok "${server}" 
+    else 
+      error "${server}"
+      echo ${server} >> no_access.servers
+    fi
+  done
+}
+
+copy_ssh_public_key_to() {
+  server=$1
+  validate_server ${server}
+  server=$(get_server_from ${server})
+  
+  info "Copying SSH key to ${server}"
+  cat ~/.ssh/id_rsa.pub | ssh ${USER}@${server} 'cat > authorized_keys && mkdir -p .ssh && chmod 700 .ssh && mv authorized_keys .ssh/ && chmod 600 .ssh/authorized_keys' 2>/dev/null
+}
+
+copy_ssh_public_key_to_all_servers() {
+  for server in $(cat ./*.servers); do
+    access=$(check_passwdless_access_to ${server})
+    if [[ ${access} -eq 0 ]]
+      then
+      ok "${server}"
+    else
+      copy_ssh_public_key_to ${server}
+      access=$(check_passwdless_access_to ${server})
+      if [[ ${access} -eq 0 ]] 
+        then
+        ok "${server}"
+      else
+        error "${server}"
+      fi
+    fi
+  done
+}
+
+copy_ssh_public_key_to_servers_in_file() {
+  file=$1
+  [[ -z "${file}" ]] && error "Missing file" && exit 1
+  [[ ! -e "${file}" ]] && error "File ${file} not found" && exit 1
+
+  for server in $(cat ${file}); do
+    access=$(check_passwdless_access_to ${server})
+    if [[ ${access} -eq 0 ]]
+      then
+      ok "${server}"
+    else
+      copy_ssh_public_key_to ${server}
+      access=$(check_passwdless_access_to ${server})
+      if [[ ${access} -eq 0 ]] 
+        then
+        ok "${server}"
+      else
+        error "${server}"
+      fi
+    fi
+  done
+}
+
+list_all_servers() {
+  for server in $(cat *.servers); do
+    echo ${server}
+  done
+}
+
+list_server() {
+  quite=
+  [[ $1 == "-q" ]] && shift && quite=yes
+  not_found=
+
+  for server in "$@"
+  do
+    environments=$( grep ${server} *.servers | sed 's/\(.*\)\.servers.*/\1/' | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
+    if [[ -z ${environments} ]]
+      then
+      not_found="${server}, ${not_found}"
+    else
+      servers=$( grep -h ${server} *.servers | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
+      count_servers=$( grep -o ", " <<< "${servers}" | wc -l | sed 's/^ *//' )
+      if [[ ${count_servers} -gt 1 ]]
+        then
+        server_pl="s"
+        server_is="are"
+      else
+        server_pl=""
+        server_is="is"
+      fi
+      count_environments=$( grep -o ", " <<< "${environments}" | wc -l | sed 's/^ *//' )
+      environment_pl=
+      [[ ${count_environments} -gt 1 ]] && environment_pl="s"
+      [[ -z "$quite" ]] && ok "Server${server_pl} ${servers%??} match for '${server}' and ${server_is} in the environment${environment_pl} ${environments%??}"
+    fi
+  done
+
+  [[ -z ${not_found} ]] && return 0
+  [[ -n ${quite} ]] && return 1
+
+  warn "No servers were found matching: ${not_found%??}"
+}
+
+get_server_from() {
+  server=$1
+  count=$( grep -hi ${server} *.servers | sort | uniq | wc -l | sed 's/^ *//' )
+  servers=$( grep -hi ${server} *.servers | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
+  [[ $count -eq 1 ]] && echo ${servers%??} && return
+  echo ''
+}
+
+validate_server() {
+  server=$1
+  count=$( grep -hi ${server} *.servers | sort | uniq | wc -l | sed 's/^ *//' )
+  servers=$( grep -hi ${server} *.servers | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
+  [[ $count -gt 1 ]] && warn "More than one server match with '${server}' (${servers%??}). Provide a better matching string." && exit 0
+  [[ $count -eq 0 ]] && error "No server match with '${server}'" && exit 1
+}
+
+ssh_to() {
+  validate_server $1
+  server=$(get_server_from $1)
+
+  mode=${2:---newtab}
+  if [[ "${mode}" == "--newtab" ]]
+    then
+    info "Login into ${server} as ${USER} in a new tab"
+    osascript -e 'tell application "Terminal" to activate' \
+              -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down' \
+              -e "tell application \"Terminal\" to do script \"ssh -qt ${USER}@${server} 'clear ; /bin/bash -i'\" in selected tab of the front window"
+  else
+    info "Login into ${server} as ${USER}"
+    ssh -qt ${USER}@${server} 'clear ; /bin/bash -i'
+  fi
+}
+
+scp_file_to() {
+  file=$1
+  [[ -z "${file}" ]] && error "Missing file" && exit 1
+  [[ ! -f ${file} ]] && error "File ${file} does not exists" && exit 1
+  validate_server $2
+  server=$(get_server_from $2)
+  file_name=${file##*/}
+  info "Transfering ${file} to ${server} in /home/${USER}/${file_name}"
+  scp "${file}" ${USER}@${server}:/home/${USER}/${file_name} 2>/dev/null
+
+  check=$(ssh -q ${USER}@${server} "[[ -e /home/${USER}/${file_name} ]] && echo OK")
+  [[ $check == 'OK' ]] && ok "File successfuly transfered" && exit 0
+  [[ $check != 'OK' ]] && error "File was not transfered" && exit 1
+}
+
+get_file_from() {
+  file=$1
+  [[ -z "${file}" ]] && error "Missing file" && exit 1
+  validate_server $2
+  server=$(get_server_from $2)
+
+  check=$(ssh -q ${USER}@${server} "[[ -e ${file} ]] && echo OK")
+  [[ $check != 'OK' ]] && error "File ${file} not found in server ${server}" && exit 1
+
+  file_name=${file##*/}
+  info "Transfering ${file} from ${server}"
+  scp "${USER}@${server}:${file}" . 2>/dev/null
+  
+  [[ ! -f ./${file_name} ]] && error "File ${file_name} transfer fail." && exit 1
+}
+
+validate_command() {
+  command=$1
+  for item in $COMMANDS_BLACK_LIST
+  do
+    [[ $command == *"${item}"* ]] && error "Command cannot contain '${item}'" && exit 1
+  done
+}
+
+exec_command_to_servers_in_file() {
+  command=$1
+  file=$2
+  [[ -z "${file}" ]] && error "Missing file" && exit 1
+  [[ ! -e "${file}" ]] && error "File ${file} not found" && exit 1
+  validate_command "$command"
+  for server in $(cat ${file}); do
+    exec_command_to "${command}" ${server}
+    echo
+  done
+}
+
+exec_command_to() {
+  command=$1
+  validate_command "$command"
+  validate_server $2
+  server=$(get_server_from $2)
+  info "Executing in ${server} as ${USER} the command '${command}'"
+  remote_command="source ~/.bash_profile && ${command}"
+  FLAGS="-q"
+  [[ $command == *"sudo"* ]] && FLAGS="${FLAGS} -t"
+  ssh ${FLAGS} ${USER}@${server} "${remote_command}"
+}
+
+[[ "$#" == "0" ]] && usage && exit 0
+
+action=
+
+while (( "$#" ))
+do
+  case "$1" in
+    # -h and --help are covered in common.sh script
+    access) # Grant password-less access to all the servers located in the ./*.servers files, to the servers inside a file or to one server, by sending the public SSH key
+      if [[ "$2" == "-h" ]]
+        then
+        access_usage
+        exit 0
+      fi
+
+      [[ -z $2 ]] && action="copy_ssh_public_key_to_all_servers"
+      if [[ "$2" == "-f" ]]
+        then
+        action="copy_ssh_public_key_to_servers_in_file $3"
+        shift 2 # remove -f <file>
+      elif [[ -n $2 ]]
+        then
+        action="copy_ssh_public_key_to ${server}"
+        shift # remove <server>
+      fi
+    ;;
+
+    check) # Verify the password-less access to all the servers, one server or the servers in the file provided
+      if [[ "$2" == "-h" ]]
+        then
+        check_usage
+        exit 0
+      fi
+
+      if [[ -z $2 ]]
+        then
+        action="print_passwdless_access_to_all_servers"
+      elif [[ "$2" == "-f" ]]
+        then
+        action="print_passwdless_access_to_servers_in_file $3"
+        shift 2
+      elif [[ -n $2 ]]
+        then
+        action="print_passwdless_access_to ${server}"
+        shift
+      fi
+    ;;
+
+    list) # List all the server or the servers that match with the list provided.
+      if [[ "$2" == "-h" ]]
+        then
+        list_usage
+        exit 0
+      fi
+
+      # Hmm .. should be a way to minimize this bunch of IFs
+      if [[ -z $2 ]]
+        then
+        action="list_all_servers"
+      elif [[ $2 == "-q" ]]
+        then
+        if [[ -z $3 ]]
+          then
+          error "List needs a list of servers to check"
+          list_usage
+          exit 1
+        else
+          action="list_server \"${@:2}\""
+          shift $(($# - 1)) # remove -q and all the servers
+        fi
+      else
+        if [[ -z $2 ]] 
+          then
+          error "List needs a list of servers to check"
+          list_usage
+          exit 1
+        else
+          action="list_server \"${@:2}\""
+          shift $(($# - 1)) # remove all the servers
+        fi
+      fi
+    ;;
+
+    scp) # Transfer a file to the server using scp. The server may be a partial name of a server name
+      if [[ "$2" == "-h" ]]
+        then
+        scp_usage
+        exit 0
+      fi
+
+      if [[ -z $2 || -z $3 ]]
+        then
+        error "SCP needs a file and a server to send the file"
+        scp_usage
+        exit 1
+      else
+        action="scp_file_to \"$2\" \"$3\"" 
+        shift 2
+      fi
+    ;;
+
+    get) # Get a file from the server.
+      if [[ "$2" == "-h" ]]
+        then
+        get_usage
+        exit 0
+      fi
+
+      if [[ -z $2 || -z $3 ]]
+        then
+        error "Get needs a file and a server to send the file"
+        get_usage
+        exit 1
+      else
+        action="get_file_from \"$2\" \"$3\"" 
+        shift 2
+      fi
+    ;;
+
+    exec) # Execute the command in the server or in all the servers listed in <file>
+      # Require command and server (at least) and first parameter is the command.
+      if [[ "$2" == "-h" || -z "$2" || "$2" == "-f" || -z "$3" ]]
+        then
+        [[ "$2" != "-h" ]] && error "Exec needs a command to execute and a server or a file with servers to execute it"
+        exec_usage
+        [[ "$2" == "-h" ]] && exit 0
+        exit 1
+      fi
+
+      if [[ "$3" == "-f" ]]
+        then
+        action="exec_command_to_servers_in_file \"$2\" $4"
+        shift 2 # remove -f <file>
+      elif [[ -n $2 && -n $3 ]]
+        then
+        action="exec_command_to \"$2\" $server"
+        shift # remove <server>
+      fi
+      shift # remove <command>
+    ;;
+
+    -u)
+      if [[ "$2" == "-h" ]]
+        then
+        user_usage
+        exit 0
+      fi
+
+      if [[ -z "$2" ]]
+        then
+        show_user
+        exit 0
+      else
+        USER=$2
+        [[ $DEBUG -eq 1 ]] && debug "User \x1B[93;1m$USER\x1B[0m is set to login to the servers."
+        shift # remove <user>
+      fi
+    ;;
+
+    -d)
+      DEBUG=1
+    ;;
+
+    --update)
+      update_sm
+    ;;
+
+    -v|--version)
+      show_version
+    ;;
+
+    *) # Login to the server in the current or a new tab (valid only in OSX Terminal App)
+      action="ssh_to $1 $2"
+      [[ -n $2 ]] && shift
+    ;;
+
+  esac
+  shift
+done
+
+eval "$action"
+
+## Useful one-liners:
+
+# Create user in servers and add it to wheel group
+# for f in $(cat cdm6.pelab.servers); do echo $f; ssh root@$f 'useradd -c "Johandry Amador" -G wheel -m myusername'; done
+
+# Change user password (password is an example, not the real one)
+# for f in $(cat cdm6.pelab.servers); do echo $f; ssh root@$f 'echo -e "sup3rp455w0rd\ncsup3rp455w0rd" | (passwd --stdin myusername)'; done
+
+# Make wheel group in sudoers with no password
+# for f in $(cat cdm6.pelab.servers); do echo $f; ssh root@$f "sed -i.back 's/# %wheel\(.*\)NOPASSWD: ALL/%wheel\1NOPASSWD: ALL/' /etc/sudoers"; done
+
