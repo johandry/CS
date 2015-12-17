@@ -18,37 +18,15 @@ If you only want to update the Common Utility script, execute:
 source ~/bin/common.sh && common_update
 ```
 ##Maintenance
-To do a modification just clone the project and deploy the changes with the ``deploy`` script.
+To setup the project for the first time, execute this to clone all the required branches and create the right structure
 
 ```
-# Go to your Workspace directory
-mkdir CloudScripts && cd $_
-git clone git@github.com:johandry/CS.git
-./deploy --setup
+curl -s http://cs.johandry.com/deploy | bash --setup
 ```
 
+To push a modification deploy the changes with the ``deploy`` script.
 
 ```
-# Go to your Workspace directory
-mkdir CS && cd $_
-git clone git@github.com:johandry/CS.git
-cd CS
-# do modifications
-git add .
-git commit -m "Description of the change"
-git push origin master
+./deploy -m 'Description of the change'
 ```
 
-If the change is in the install script, make sure to deploy it to the gh-pages branch too.
-
-```
-# Go to your Workspace directory
-mkdir -p CS && cd $_
-git clone -b gh-pages git@github.com:johandry/CS.git Pages
-cd $_
-# do modifications to pages if needed
-cp ../CS/install .
-git add .
-git commit -m "Description of the change"
-git push origin gh-pages # Or just git push
-```
