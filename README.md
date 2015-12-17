@@ -1,6 +1,6 @@
-#C[loud]S[cripting]
+#C[loud]S[cripts]
 
-CloudScripting (CS) is where all my day to day scripts and frameworks are stored. It also contain script templates.
+CloudScripts (CS) is where all my day to day scripts, templates and frameworks are stored.
 
 ##Installation
 Execute only this command to install all the scripts and files of CS in their respective location.
@@ -15,10 +15,18 @@ Once the scripts are installed, they can be updated with the parameter ``--updat
 If you only want to update the Common Utility script, execute:
 
 ```
-~/bin/common.sh && common_update
+source ~/bin/common.sh && common_update
 ```
 ##Maintenance
-To do a modification, clone the project and push the changes.
+To do a modification just clone the project and deploy the changes with the ``deploy`` script.
+
+```
+# Go to your Workspace directory
+mkdir CloudScripts && cd $_
+git clone git@github.com:johandry/CS.git
+./deploy --setup
+```
+
 
 ```
 # Go to your Workspace directory

@@ -49,7 +49,7 @@ deploy () {
   [[ ! -d "${SCRIPT_DIR}/../${GITHUB_PROJECT}" ]] && error "Incorrect master directory name"
 
   cd "${SCRIPT_DIR}/.."
-  if ! ef "${GITHUB_PROJECT}/install" "Pages/install"
+  if ! ef "${GITHUB_PROJECT}/install" "Pages/install" || ! ef "${GITHUB_PROJECT}/deploy" "Pages/deploy"
     then
     info "New version of 'install' ready to be deployed in gh-pages branch"
     cp ${GITHUB_PROJECT}/install Pages/install
