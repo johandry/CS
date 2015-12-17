@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+#=======================================================================================================
+# Author: Johandry Amador <johandry@gmail.com>
+# Title:  Install all the scripts
+#
+# Usage: {script_name} <option>
+#
+# Options:
+#     -h, --help		Display this help message. bash {script_name} -h
+#
+# Description: Execute this script after been downloaded (i.e. with curl) to install all the programs and files to the required locations to be used.
+#              The right way should be: curl -s https://raw.githubusercontent.com/johandry/CS/master/install | bash
+#
+# Report Issues or create Pull Requests in http://github.com/johandry/
+#=======================================================================================================
+
+GITHUB_RAW="https://raw.githubusercontent.com/johandry/CS/master"
+
+scripts=(
+  "$HOME/bin:common.sh"
+  "$HOME/bin:sm"
+)
+
+for script in ${scripts[@]}
+do
+  script_dir=$(echo $script | cut -f1 -d:)
+  script_name=$(echo $script | cut -f2 -d:)
+
+  # Create the script directory if it doesn't exists
+  [[ ! -d "${script_dir}" ]] && mkdir -p "${script_dir}"
+  # The script may be in more directories (i.e. templates/)
+
+  if [[ "${script_name}" =~ *"/"* ]]
+  then
+    script_sub_dir=$(echo ${script_name%/*})
+    [[ ! -d "${script_dir}/${script_sub_dir}" ]] && mkdir -p "${script_dir}/${script_sub_dir}"
+  fi
+
+  # Create a backup if the file is there
+  bkp_id=$(date +'%s')
+  [[ -e "${script_dir}/${script_name}" ]] && cp "${script_dir}/${script_name}" "${script_dir}/${script_name}.${bkp_id}.bak"
+
+  curl -k -s -o "${script_dir}/${script_name}" "${GITHUB_RAW}/${script_name}"
+
+  # If there is a backup, delete it if it is the same file downloaded.
+  if [[ -e "${script_dir}/${script_name}.${bkp_id}.bak" ]]
+  then
+    current_md5=$(md5 -q "${script_dir}/${script_name}")
+    backup_md5=$(md5 -q "${script_dir}/${script_name}.${bkp_id}.bak")
+
+    if [[ "${current_md5}" != "${backup_md5}" ]]
+      then
+      echo -ne "\x1B[92;1m[ OK ]\x1B[0m  ${script_name} sucessfuly installed and backup of previous version in ${script_dir}/${script_name}.${bkp_id}.bak\n"
+    else
+      echo -ne "\x1B[92;1m[ OK ]\x1B[0m  ${script_name} sucessfuly reinstalled\n"
+      rm "${script_dir}/${script_name}.${bkp_id}.bak"
+    fi
+  else
+    # If there is no backup, verify it was sucessfuly downloaded.
+    if [[ -e "${script_dir}/${script_name}" ]]
+    then
+      echo -ne "\x1B[92;1m[ OK ]\x1B[0m  ${script_name} sucessfuly installed\n"
+    else
+      echo -ne "\x1B[91;1m[ERROR]\x1B[0m ${script_name} installation failed\n"
+    fi
+  fi
+done

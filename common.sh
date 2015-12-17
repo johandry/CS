@@ -177,11 +177,20 @@ update () {
   title=$4
 
   bkp_id=$(date +'%s')
-  info "Backup of previous version in ${script_dir}/${script_name}.${bkp_id}.bak"
   cp "${script_dir}/${script_name}" "${script_dir}/${script_name}.${bkp_id}.bak"
 
   info "Updating ${title} from online version"
   curl -k -s -o "${script_dir}/${script_name}" ${source_url}
+
+  current_md5=$(md5 -q "${script_dir}/${script_name}")
+  backup_md5=$(md5 -q "${script_dir}/${script_name}.${bkp_id}.bak")
+
+  if [[ "${current_md5}" != "${backup_md5}" ]]
+    then
+    info "Backup of previous version in ${script_dir}/${script_name}.${bkp_id}.bak"
+  else
+    rm "${script_dir}/${script_name}.${bkp_id}.bak"
+  fi
 }
 
 common_update () {
