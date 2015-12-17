@@ -21,6 +21,8 @@ If you only want to update the Common Utility script, execute:
 To do a modification, clone the project and push the changes.
 
 ```
+# Go to your Workspace directory
+mkdir CS && cd $_
 git clone git@github.com:johandry/CS.git
 cd CS
 # do modifications
@@ -32,10 +34,10 @@ git push origin master
 If the change is in the install script, make sure to deploy it to the gh-pages branch too.
 
 ```
-git clone git@github.com:johandry/CS.git CS_pages
+# Go to your Workspace directory
+mkdir -p CS && cd $_
+git clone -b gh-pages git@github.com:johandry/CS.git Pages
 cd $_
-git fetch origin
-git checkout gh-pages
 # do modifications to pages if needed
 cp ../CS/install .
 git add .

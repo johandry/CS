@@ -12,21 +12,23 @@
 # Description: Execute this script after been downloaded (i.e. with curl) to install all the programs and files to the required locations to be used.
 #              The right way should be: curl -s http://cs.johandry.com/install | bash
 #
-# Report Issues or create Pull Requests in http://github.com/johandry/
+# Report Issues or create Pull Requests in http://github.com/johandry/CS
 #=======================================================================================================
 
-GITHUB_RAW="https://raw.githubusercontent.com/johandry/CS/master"
+GITHUB_RAW="https://raw.githubusercontent.com/johandry"
 
+# Script Project : Localhost Target Directory : Location & Script Name : Script Permissions
 scripts=(
-  "$HOME/bin:common.sh:640"
-  "$HOME/bin:sm:750"
+  "CS:$HOME/bin:common.sh:640"
+  "CS:$HOME/bin:sm:750"
 )
 
 for script in ${scripts[@]}
 do
-  script_dir=$(echo $script | cut -f1 -d:)
-  script_name=$(echo $script | cut -f2 -d:)
-  script_permissions=$(echo $script | cut -f3 -d:)
+  script_project=$(echo $script | cut -f1 -d:)
+  script_dir=$(echo $script | cut -f2 -d:)
+  script_name=$(echo $script | cut -f3 -d:)
+  script_permissions=$(echo $script | cut -f4 -d:)
 
   # Create the script directory if it doesn't exists
   [[ ! -d "${script_dir}" ]] && mkdir -p "${script_dir}"
@@ -42,7 +44,7 @@ do
   bkp_id=$(date +'%s')
   [[ -e "${script_dir}/${script_name}" ]] && cp "${script_dir}/${script_name}" "${script_dir}/${script_name}.${bkp_id}.bak"
 
-  curl -k -s -o "${script_dir}/${script_name}" "${GITHUB_RAW}/${script_name}" && \
+  curl -k -s -o "${script_dir}/${script_name}" "${GITHUB_RAW}/${script_project}/master/${script_name}" && \
     chmod ${script_permissions} "${script_dir}/${script_name}"
 
 

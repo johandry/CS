@@ -22,20 +22,22 @@ LOG_FILE="$(mktemp -t ${SCRIPT_NAME%.*}.XXXXXX).log"
 GITHUB_RAW="https://raw.githubusercontent.com/johandry"
 SOURCE="${GITHUB_RAW}/${GITHUB_PROJECT}/master/${SCRIPT_NAME}"
 
-# Every script should have a version, project name and source
+# Every script should have these lines
 # VERSION=
 # TITLE=
 # GITHUB_PROJECT="CS"
+#
+# source ~/bin/common.sh
 
-# Set DEBUG to 1 using argument --debug in case you need it.
-DEBUG=0
-
-COMMON_VERSION='1.0.3'
+COMMON_VERSION='1.0.4'
 COMMON_TITLE='Common Utilities'
 COMMON_GITHUB_PROJECT="CS"
 COMMON_SCRIPT_DIR="$HOME/bin"
 COMMON_SCRIPT_NAME="common.sh"
 COMMON_SOURCE="${GITHUB_RAW}/${COMMON_GITHUB_PROJECT}/master/${COMMON_SCRIPT_NAME}"
+
+# Set DEBUG to 1 using argument --debug in case you need it.
+DEBUG=0
 
 log () {
   msg_type="\x1B[${3};1m[${1}]\x1B[0m"
@@ -168,6 +170,18 @@ show_version () {
   common_version
 
   exit 0
+}
+
+# Equal Files: Compare if 2 files are the same. If they are the same return and print 0
+ef () {
+  file_1=$1
+  file_2=$2
+
+  file_1_md5=$(md5 -q "${file_1}")
+  file_2_md5=$(md5 -q "${file_2}")
+
+  [[ "${file_1_md5}" == "${file_2_md5}" ]] && echo 0 && return 0
+  echo 1 && return 1
 }
 
 update () {
