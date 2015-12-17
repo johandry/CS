@@ -19,14 +19,14 @@
 #     check <server>              Verify the password-less access to the <server>.
 #     check -f <file>             Verify the password-less access to all the servers listed in <file>.
 #     list                        List all the server
-#     list [-q] <servers>         Find the server that match with <servers> and print the environment where they are. <servers> can be a list of servers. 
+#     list [-q] <servers>         Find the server that match with <servers> and print the environment where they are. <servers> can be a list of servers.
 #                                 There is one servers file per environment. -q will not print any output, the result is in the exit code.
 #     scp <file> <server>         Transfer a file to the server using scp. The server may be a partial name of a server name.
 #     get <file> <server>         Get a file from the server using scp. The server may be a partial name of a server name.
 #     exec <command> <server>     Execute the command in the server
 #     exec <command> -f <file>    Execute the command in all the servers listed in <file>
 #     -u [<user>]                 Show the user used to login to the servers. If not provided, will set the user to login to the servers. By default user is $USER or /User/$USER if not the same.
-#     <server> [--local|--newtab] Login to the server. The server may be a partial name of a server name. 
+#     <server> [--local|--newtab] Login to the server. The server may be a partial name of a server name.
 #                                 In OSX Terminal, the new session will be open in a new tab by default (-newtab). Use --local to open it in the current tab.
 #
 # Description: This script is to execute some actions to the servers listed in the environment servers files.
@@ -36,12 +36,12 @@
 # Report Issues or create Pull Requests in http://github.com/johandry/
 #=======================================================================================================
 
-
 source ~/bin/common.sh
 
 VERSION='1.1.1'
+SOURCE="https://raw.githubusercontent.com/johandry/CS/master/sm"
 
-# This will only works for OSX where all the users are located in /Users/<username>. 
+# This will only works for OSX where all the users are located in /Users/<username>.
 # Usualy $USER env variable and /User/$USER have the same value. If not, we will use /User/$USER
 # This value can be overwrited with option -u <USER>
 USER=${HOME##/Users/}
@@ -55,33 +55,36 @@ DEBUG=0
 show_version(){
   info "Servers Management version ${VERSION}"
 
-  tmpfile=$(mktemp /tmp/sm.XXXXXX)
-  curl -k -s -o ${tmpfile} https://raw.githubusercontent.com/johandry/CS/master/sm
+  tmpfile=$(mktemp -t sm.XXXXXX) || exit 1
+  curl -k -s -o ${tmpfile} ${SOURCE}
 
   update_required=0
-  
-  latest_version=$(grep VERSION /tmp/common.sh | cut -f2 -d= | tr -d "'")
+
+  latest_version=$(grep '^VERSION=' ${tmpfile} | cut -f2 -d= | tr -d "'")
   info "Servers Management latest version ${latest_version}"
 
   latest_v=$(printf "${VERSION}\n${latest_version}" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -k 4,4 -g | tail -1)
   if [[ "${latest_version}" != "${latest_v}" ]]
     then
     warn "Watchout, you have a newer version than the one in GitHub. Commit and push your changes."
+    indent "See the differences with 'curl -k -s ${SOURCE} | diff - ${SCRIPT_NAME} | less' "
     newer_version=1
   fi
 
-  [[ ${latest_version} != ${COMMON_VERSION} ]] && update_required=1
-  [[ ${update_required} -eq 1 ]] && warn "Versions are different (${latest_version} <> ${COMMON_VERSION})"
+  [[ ${latest_version} != ${VERSION} ]] && update_required=1
+  [[ ${update_required} -eq 1 ]] && warn "Versions are different (${latest_version} <> ${VERSION})"
 
   if [[ ${update_required} -eq 0 ]]
     then
-    current_md5=$(md5 -q ~/bin/sm)
+    current_md5=$(md5 -q "${SCRIPT_DIR}/${SCRIPT_NAME}")
     latest_md5=$(md5 -q ${tmpfile})
 
     if [[ "${current_md5}" != "${latest_md5}" ]]
       then
       warn "Files are different. Update the version variables and verify you don't have a newer version."
+      indent "See the differences with 'curl -k -s ${SOURCE} | diff - ${SCRIPT_NAME} | less' "
       [[ $newer_version -ne 1 ]] && update_required=1
+    fi
   fi
 
   # if [[ ${update_required} -eq 1 ]]
@@ -91,15 +94,16 @@ show_version(){
   #   response=${response,,} # to lower case
   #   [[ ${response} =~ ^(y| ) ]] && common_upgrade
   # fi
-  
+
   rm "${tmpfile}"
 
+  indent
   common_version
 }
 
 update_sm(){
   info TODO
-  update_common
+  common_update
 }
 
 access_usage(){
@@ -160,7 +164,7 @@ print_passwdless_access_to() {
   validate_server $1
   server=$(get_server_from $1)
   access=$(check_passwdless_access_to ${server})
-  if [[ ${access} -eq 0 ]] 
+  if [[ ${access} -eq 0 ]]
     then
     ok "${server}"
   else
@@ -174,8 +178,8 @@ print_passwdless_access_to_all_servers() {
     access=$(check_passwdless_access_to ${server})
     if [[ ${access} -eq 0 ]]
       then
-      ok "${server}" 
-    else 
+      ok "${server}"
+    else
       error "${server}"
       echo ${server} >> no_access.servers
     fi
@@ -192,8 +196,8 @@ print_passwdless_access_to_servers_in_file(){
     access=$(check_passwdless_access_to ${server})
     if [[ ${access} -eq 0 ]]
       then
-      ok "${server}" 
-    else 
+      ok "${server}"
+    else
       error "${server}"
       echo ${server} >> no_access.servers
     fi
@@ -204,7 +208,7 @@ copy_ssh_public_key_to() {
   server=$1
   validate_server ${server}
   server=$(get_server_from ${server})
-  
+
   info "Copying SSH key to ${server}"
   cat ~/.ssh/id_rsa.pub | ssh ${USER}@${server} 'cat > authorized_keys && mkdir -p .ssh && chmod 700 .ssh && mv authorized_keys .ssh/ && chmod 600 .ssh/authorized_keys' 2>/dev/null
 }
@@ -218,7 +222,7 @@ copy_ssh_public_key_to_all_servers() {
     else
       copy_ssh_public_key_to ${server}
       access=$(check_passwdless_access_to ${server})
-      if [[ ${access} -eq 0 ]] 
+      if [[ ${access} -eq 0 ]]
         then
         ok "${server}"
       else
@@ -241,7 +245,7 @@ copy_ssh_public_key_to_servers_in_file() {
     else
       copy_ssh_public_key_to ${server}
       access=$(check_passwdless_access_to ${server})
-      if [[ ${access} -eq 0 ]] 
+      if [[ ${access} -eq 0 ]]
         then
         ok "${server}"
       else
@@ -352,7 +356,7 @@ get_file_from() {
   file_name=${file##*/}
   info "Transfering ${file} from ${server}"
   scp "${USER}@${server}:${file}" . 2>/dev/null
-  
+
   [[ ! -f ./${file_name} ]] && error "File ${file_name} transfer fail." && exit 1
 }
 
@@ -459,7 +463,7 @@ do
           shift $(($# - 1)) # remove -q and all the servers
         fi
       else
-        if [[ -z $2 ]] 
+        if [[ -z $2 ]]
           then
           error "List needs a list of servers to check"
           list_usage
@@ -484,7 +488,7 @@ do
         scp_usage
         exit 1
       else
-        action="scp_file_to \"$2\" \"$3\"" 
+        action="scp_file_to \"$2\" \"$3\""
         shift 2
       fi
     ;;
@@ -502,7 +506,7 @@ do
         get_usage
         exit 1
       else
-        action="get_file_from \"$2\" \"$3\"" 
+        action="get_file_from \"$2\" \"$3\""
         shift 2
       fi
     ;;
@@ -580,4 +584,3 @@ eval "$action"
 
 # Make wheel group in sudoers with no password
 # for f in $(cat cdm6.pelab.servers); do echo $f; ssh root@$f "sed -i.back 's/# %wheel\(.*\)NOPASSWD: ALL/%wheel\1NOPASSWD: ALL/' /etc/sudoers"; done
-

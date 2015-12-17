@@ -1,4 +1,16 @@
-C[loud]S[cripting]
-==
+#C[loud]S[cripting]
 
-CloudScripting (CS) is a project to publish on GitHub all my scripts (Shell and Perl) with a framework to execute, update and install form the cloud in any computer.
+CloudScripting (CS) is where all my day to day scripts and frameworks are stored. It also contain script templates.
+
+##Installation
+_* these instructions will be automated_
+
+```
+mkdir ~/Workspace && cd $_
+git clone https://github.com/johandry/CS.git 
+./CS/install.sh
+
+```
+
+
+
