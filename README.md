@@ -18,7 +18,7 @@ If you only want to update the Common Utility script, execute:
 ~/bin/common.sh && common_update
 ```
 ##Maintenance
-To do a modification, clone the project and push the changes. 
+To do a modification, clone the project and push the changes.
 
 ```
 git clone git@github.com:johandry/CS.git
@@ -40,5 +40,5 @@ git checkout gh-pages
 cp ../CS/install .
 git add .
 git commit -m "Description of the change"
-git push origin gh-pages
+git push origin gh-pages # Or just git push
 ```

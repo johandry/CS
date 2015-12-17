@@ -18,14 +18,15 @@
 GITHUB_RAW="https://raw.githubusercontent.com/johandry/CS/master"
 
 scripts=(
-  "$HOME/bin:common.sh"
-  "$HOME/bin:sm"
+  "$HOME/bin:common.sh:640"
+  "$HOME/bin:sm:750"
 )
 
 for script in ${scripts[@]}
 do
   script_dir=$(echo $script | cut -f1 -d:)
   script_name=$(echo $script | cut -f2 -d:)
+  script_permissions=$(echo $script | cut -f3 -d:)
 
   # Create the script directory if it doesn't exists
   [[ ! -d "${script_dir}" ]] && mkdir -p "${script_dir}"
@@ -41,7 +42,9 @@ do
   bkp_id=$(date +'%s')
   [[ -e "${script_dir}/${script_name}" ]] && cp "${script_dir}/${script_name}" "${script_dir}/${script_name}.${bkp_id}.bak"
 
-  curl -k -s -o "${script_dir}/${script_name}" "${GITHUB_RAW}/${script_name}"
+  curl -k -s -o "${script_dir}/${script_name}" "${GITHUB_RAW}/${script_name}" && \
+    chmod ${script_permissions} "${script_dir}/${script_name}"
+
 
   # If there is a backup, delete it if it is the same file downloaded.
   if [[ -e "${script_dir}/${script_name}.${bkp_id}.bak" ]]
