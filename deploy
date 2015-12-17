@@ -23,6 +23,8 @@ GITHUB_PROJECT="CS"
 
 source ~/bin/common.sh
 
+DEBUG=1
+
 # If not set, the WORKSPACE Directory is the current directory
 WORKSPACE_DIR=.
 
