@@ -51,8 +51,8 @@ deploy () {
   cd "${SCRIPT_DIR}/.."
   if ! ef "${GITHUB_PROJECT}/install" "Pages/install"
     then
-    info "New version of install to be deployed in gh-pages branch"
-    # cp ${GITHUB_PROJECT}/install Pages/install
+    info "New version of 'install' ready to be deployed in gh-pages branch"
+    cp ${GITHUB_PROJECT}/install Pages/install
     cd Pages
     info "Pushing gh-pages branch"
     git add . && \

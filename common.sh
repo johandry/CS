@@ -180,8 +180,8 @@ ef () {
   file_1_md5=$(md5 -q "${file_1}")
   file_2_md5=$(md5 -q "${file_2}")
 
-  [[ "${file_1_md5}" == "${file_2_md5}" ]] && echo 0 && return 0
-  echo 1 && return 1
+  [[ "${file_1_md5}" == "${file_2_md5}" ]] && return 0
+  return 1
 }
 
 update () {
