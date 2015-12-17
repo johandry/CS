@@ -33,6 +33,7 @@ DEBUG=0
 COMMON_VERSION='1.0.3'
 COMMON_TITLE='Common Utilities'
 COMMON_GITHUB_PROJECT="CS"
+COMMON_SCRIPT_DIR="$HOME/bin"
 COMMON_SCRIPT_NAME="common.sh"
 COMMON_SOURCE="${GITHUB_RAW}/${COMMON_GITHUB_PROJECT}/master/${COMMON_SCRIPT_NAME}"
 
@@ -99,118 +100,97 @@ usage () {
   exit 0
 }
 
-common_version () {
-  tmpfile=$(mktemp -t ${COMMON_SCRIPT_NAME}.XXXXXX) || exit 1
-  curl -k -s -o ${tmpfile} ${COMMON_SOURCE}
+version () {
+  script_name=$1
+  source_url=$2
+  pattern=$3
+  version=$4
+  title=$5
+  script_dir=$6
 
-  online_version=$(grep '^COMMON_VERSION=' ${tmpfile} | cut -f2 -d= | tr -d "'")
-  info "${COMMON_TITLE} version ${COMMON_VERSION}, online version ${online_version}"
+  tmpfile=$(mktemp -t ${script_name}.XXXXXX) || exit 1
+  curl -k -s -o ${tmpfile} ${source_url}
+
+  online_version=$(grep "^${pattern}=" ${tmpfile} | cut -f2 -d= | tr -d "'")
+  if [[ ${online_version} == ${version} ]]
+  then
+    version_message="you have the latest version"
+  else
+    version_message="online version ${online_version}"
+  fi
+  info "${title} version ${version}, $version_message"
 
   update_required=0
 
-  latest_version=$(printf "${COMMON_VERSION}\n${online_version}" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -k 4,4 -g | tail -1)
+  latest_version=$(printf "${version}\n${online_version}" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -k 4,4 -g | tail -1)
   if [[ "${online_version}" != "${latest_version}" ]]
     then
     warn "Watchout, you have a newer version than the online one. Commit and push your changes."
-    indent "See the differences with 'curl -k -s ${COMMON_SOURCE} | diff - ~/bin/${COMMON_SCRIPT_NAME} | less' "
+    indent "See the differences with 'curl -k -s ${source_url} | diff - ${script_name} | less' "
     newer_version=1
   fi
 
-  [[ ${online_version} != ${COMMON_VERSION} ]] && \
+  [[ ${online_version} != ${version} ]] && \
     update_required=1 && \
-    warn "Versions are different (${online_version} <> ${COMMON_VERSION})"
+    warn "Versions are different (${online_version} <> ${version})"
 
   if [[ ${update_required} -eq 0 ]]
     then
-    current_md5=$(md5 -q ~/bin/${COMMON_SCRIPT_NAME})
+    current_md5=$(md5 -q "${script_dir}/${script_name}")
     latest_md5=$(md5 -q ${tmpfile})
 
     if [[ "${current_md5}" != "${latest_md5}" ]]
       then
       warn "Files are different. Update the version variables and verify you don't have a newer version."
-      indent "See the differences with 'curl -k -s ${COMMON_SOURCE} | diff - ~/bin/${COMMON_SCRIPT_NAME} | less' "
+      indent "See the differences with 'curl -k -s ${source_url} | diff - ${script_dir}/${script_name} | less' "
       [[ $newer_version -ne 1 ]] && update_required=1
     fi
   fi
 
   # if [[ ${update_required} -eq 1 ]]
   #   then
-  #   echo -ne "Looks like ${TITLE} is not the latest version (${online_version}), do you want to update now? \x1B[94;1m(Y/n)\x1B[0m: "
-  #   read -r -n 1 response
-  #   response=$(echo ${response:y} | tr '[:upper:]' '[:lower:]')
-  #   [[ "${response}" == "y" || "${response}" == "" ]] && common_update
-  # fi
-
-  rm "${tmpfile}"
-}
-
-show_version () {
-  tmpfile=$(mktemp -t ${SCRIPT_NAME}.XXXXXX) || exit 1
-  curl -k -s -o ${tmpfile} ${SOURCE}
-
-  online_version=$(grep '^VERSION=' ${tmpfile} | cut -f2 -d= | tr -d "'")
-  info "${TITLE} version ${VERSION}, online version ${online_version}"
-
-  update_required=0
-
-  latest_version=$(printf "${VERSION}\n${online_version}" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -k 4,4 -g | tail -1)
-  if [[ "${online_version}" != "${latest_version}" ]]
-    then
-    warn "Watchout, you have a newer version than the online one. Commit and push your changes."
-    indent "See the differences with 'curl -k -s ${SOURCE} | diff - ${SCRIPT_NAME} | less' "
-    newer_version=1
-  fi
-
-  [[ ${online_version} != ${VERSION} ]] && \
-    update_required=1 && \
-    warn "Versions are different (${online_version} <> ${VERSION})"
-
-  if [[ ${update_required} -eq 0 ]]
-    then
-    current_md5=$(md5 -q "${SCRIPT_DIR}/${SCRIPT_NAME}")
-    latest_md5=$(md5 -q ${tmpfile})
-
-    if [[ "${current_md5}" != "${latest_md5}" ]]
-      then
-      warn "Files are different. Update the version variables and verify you don't have a newer version."
-      indent "See the differences with 'curl -k -s ${SOURCE} | diff - ${SCRIPT_NAME} | less' "
-      [[ $newer_version -ne 1 ]] && update_required=1
-    fi
-  fi
-
-  # if [[ ${update_required} -eq 1 ]]
-  #   then
-  #   echo -ne "Looks like ${TITLE} is not the latest version (${online_version}), do you want to update now? \x1B[94;1m(Y/n)\x1B[0m: "
+  #   echo -ne "Looks like ${title} is not the latest version (${online_version}), do you want to update now? \x1B[94;1m(Y/n)\x1B[0m: "
   #   read -r -n 1 response
   #   response=$(echo ${response:y} | tr '[:upper:]' '[:lower:]')
   #   [[ "${response}" == "y" || "${response}" == "" ]] && update_me
   # fi
 
   rm "${tmpfile}"
+}
 
+common_version () {
+  version "${COMMON_SCRIPT_NAME}" "${COMMON_SOURCE}" "COMMON_VERSION" "${COMMON_VERSION}" "${COMMON_TITLE}" "${COMMON_SCRIPT_DIR}"
+}
+
+show_version () {
+  version "${SCRIPT_NAME}" "${SOURCE}" "VERSION" "${VERSION}" "${TITLE}" "${SCRIPT_DIR}"
   indent
   common_version
 
   exit 0
 }
 
-common_update () {
-  bkp_id=$(date +'%s')
-  info "Backup of previous version in ~/bin/${COMMON_SCRIPT_NAME}.${bkp_id}.bak"
-  cp "${SCRIPT_DIR}/${SCRIPT_NAME}" "~/bin/${COMMON_SCRIPT_NAME}.${bkp_id}.bak"
+update () {
+  script_dir=$1
+  script_name=$2
+  source_url=$3
+  title=$4
 
-  info "Updating ${COMMON_TITLE} from online version"
-  curl -k -s -o "~/bin/${COMMON_SCRIPT_NAME}" ${COMMON_SOURCE}
+  bkp_id=$(date +'%s')
+  info "Backup of previous version in ${script_dir}/${script_name}.${bkp_id}.bak"
+  cp "${script_dir}/${script_name}" "${script_dir}/${script_name}.${bkp_id}.bak"
+
+  info "Updating ${title} from online version"
+  curl -k -s -o "${script_dir}/${script_name}" ${source_url}
+}
+
+common_update () {
+  update "${COMMON_SCRIPT_DIR}" "${COMMON_SCRIPT_NAME}" "${COMMON_SOURCE}" "${COMMON_TITLE}"
 }
 
 update_me () {
-  bkp_id=$(date +'%s')
-  info "Backup of previous version in ${SCRIPT_DIR}/${SCRIPT_NAME}.${bkp_id}.bak"
-  cp "${SCRIPT_DIR}/${SCRIPT_NAME}" "${SCRIPT_DIR}/${SCRIPT_NAME}.${bkp_id}.bak"
-
-  info "Updating ${TITLE} from online version"
-  curl -k -s -o "${SCRIPT_DIR}/${SCRIPT_NAME}" ${SOURCE}
-
+  update "${SCRIPT_DIR}" "${SCRIPT_NAME}" "${SOURCE}" "${TITLE}"
+  indent
   common_update
 
   exit 0
