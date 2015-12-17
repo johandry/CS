@@ -16,7 +16,10 @@ SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 source "${SCRIPT_DIR}/common.sh"
 
+OPT='-i'
+[[ $1 == '-f' ]] && OPT=''
+
 mkdir -p ~/bin/
 
-cp -i "${SCRIPT_DIR}/common.sh" ~/bin/
-cp -i "${SCRIPT_DIR}/sm" ~/bin/
+cp ${OPT} "${SCRIPT_DIR}/common.sh" ~/bin/
+cp ${OPT} "${SCRIPT_DIR}/sm" ~/bin/
