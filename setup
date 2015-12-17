@@ -33,8 +33,6 @@ setup () {
   git clone -b gh-pages git@github.com:johandry/CS.git Pages
 }
 
-[[ "$#" == "0" ]] && usage && exit 0
-
 [[ "$1" == "-ws" ]] && WORKSPACE_DIR="$2"
 
 setup
