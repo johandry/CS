@@ -58,36 +58,48 @@ show_version(){
   tmpfile=$(mktemp /tmp/sm.XXXXXX)
   curl -k -s -o ${tmpfile} https://raw.githubusercontent.com/johandry/CS/master/sm
 
-  upgrade_required=0
+  update_required=0
   
   latest_version=$(grep VERSION /tmp/common.sh | cut -f2 -d= | tr -d "'")
   info "Servers Management latest version ${latest_version}"
-  [[ ${latest_version} != ${COMMON_VERSION} ]] && upgrade_required=1
-  [[ ${upgrade_required} -eq 1 ]] && warn "Versions are different (${latest_version} <> ${COMMON_VERSION})"
 
-  if [[ ${upgrade_required} -eq 0 ]]
+  latest_v=$(printf "${VERSION}\n${latest_version}" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -k 4,4 -g | tail -1)
+  if [[ "${latest_version}" != "${latest_v}" ]]
+    then
+    warn "Watchout, you have a newer version than the one in GitHub. Commit and push your changes."
+    newer_version=1
+  fi
+
+  [[ ${latest_version} != ${COMMON_VERSION} ]] && update_required=1
+  [[ ${update_required} -eq 1 ]] && warn "Versions are different (${latest_version} <> ${COMMON_VERSION})"
+
+  if [[ ${update_required} -eq 0 ]]
     then
     current_md5=$(md5 -q ~/bin/sm)
     latest_md5=$(md5 -q ${tmpfile})
 
-    [[ "${current_md5}" != "${latest_md5}" ]] && \
-      warn "Files are different. Update the version variable in GitHub" && \
-      upgrade_required=1
+    if [[ "${current_md5}" != "${latest_md5}" ]]
+      then
+      warn "Files are different. Update the version variables and verify you don't have a newer version."
+      [[ $newer_version -ne 1 ]] && update_required=1
   fi
 
-  if [[ ${upgrade_required} -eq 1 ]]
-    then
-    echo -ne "Common Utilities is not the latest version, do you want to update now? \x1B[94;1m(Y/n)\x1B[0m: "
-    read -r -n 1 response
-    response=${response,,} # to lower case
-    [[ ${response} =~ ^(y| ) ]] && common_upgrade
-  fi
+  # if [[ ${update_required} -eq 1 ]]
+  #   then
+  #   echo -ne "Servers Management is not the latest version (${latest_version}), do you want to update now? \x1B[94;1m(Y/n)\x1B[0m: "
+  #   read -r -n 1 response
+  #   response=${response,,} # to lower case
+  #   [[ ${response} =~ ^(y| ) ]] && common_upgrade
+  # fi
   
   rm "${tmpfile}"
+
+  common_version
 }
 
 update_sm(){
   info TODO
+  update_common
 }
 
 access_usage(){

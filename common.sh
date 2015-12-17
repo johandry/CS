@@ -67,7 +67,7 @@ usage () {
 
 [[ "${1}" == "-h" || "${1}" == "--help" ]] && usage
 
-common_upgrade(){
+update_common(){
   info TODO
 }
 
@@ -77,30 +77,30 @@ common_version(){
   tmpfile=$(mktemp /tmp/common.sh.XXXXXX)
   curl -k -s -o ${tmpfile} https://raw.githubusercontent.com/johandry/CS/master/common.sh
 
-  upgrade_required=0
+  update_required=0
 
   latest_version=$(grep COMMON_VERSION /tmp/common.sh | cut -f2 -d= | tr -d "'")
   info "Common Utilities latest version ${latest_version}"
-  [[ ${latest_version} != ${COMMON_VERSION} ]] && upgrade_required=1
-  [[ ${upgrade_required} -eq 1 ]] && warn "Versions are different (${latest_version} <> ${COMMON_VERSION})"
+  [[ ${latest_version} != ${COMMON_VERSION} ]] && update_required=1
+  [[ ${update_required} -eq 1 ]] && warn "Versions are different (${latest_version} <> ${COMMON_VERSION})"
 
-  if [[ ${upgrade_required} -eq 0 ]]
+  if [[ ${update_required} -eq 0 ]]
     then
     current_md5=$(md5 -q ~/bin/common.sh)
     latest_md5=$(md5 -q ${tmpfile})
 
     [[ "${current_md5}" != "${latest_md5}" ]] && \
       warn "Files are different. Update the version variable in GitHub" && \
-      upgrade_required=1
+      update_required=1
   fi
 
-  if [[ ${upgrade_required} -eq 1 ]]
-    then
-    echo -ne "Common Utilities is not the latest version, do you want to update now? \x1B[94;1m(Y/n)\x1B[0m: "
-    read -r -n 1 response
-    response=${response,,} # to lower case
-    [[ ${response} =~ ^(y| ) ]] && common_upgrade
-  fi
+  # if [[ ${update_required} -eq 1 ]]
+  #   then
+  #   echo -ne "Common Utilities is not the latest version (${latest_version}), do you want to update now? \x1B[94;1m(Y/n)\x1B[0m: "
+  #   read -r -n 1 response
+  #   response=${response,,} # to lower case
+  #   [[ ${response} =~ ^(y| ) ]] && update_common
+  # fi
   
   rm "${tmpfile}"
 }
