@@ -10,7 +10,7 @@
 #     -h, --help		Display this help message. bash {script_name} -h
 #
 # Description: Execute this script after been downloaded (i.e. with curl) to install all the programs and files to the required locations to be used.
-#              The right way should be: curl -s https://raw.githubusercontent.com/johandry/CS/master/install | bash
+#              The right way should be: curl -s http://cs.johandry.com/install | bash
 #
 # Report Issues or create Pull Requests in http://github.com/johandry/
 #=======================================================================================================
