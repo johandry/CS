@@ -10,16 +10,12 @@ curl -s http://cs.johandry.com/install | bash
 ```
 
 ##Updates
-Once the scripts are installed, they can be updated with the parameter ``--update``. Example:
+Once the scripts are installed, they can be updated with the parameter ``--update``. Example: ``sm --update``
+
+If you only want to update the Common Utility script, execute:
 
 ```
-sm --update
-```
-If you only want to update the Common Utility script, execute these commands:
-
-```
-source ~/bin/common.sh
-common_update
+~/bin/common.sh && common_update
 ```
 ##Maintenance
 To do a modification, clone the project and push the changes. 
