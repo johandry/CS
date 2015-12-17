@@ -54,15 +54,19 @@ deploy () {
     info "New version of install to be deployed in gh-pages branch"
     # cp ${GITHUB_PROJECT}/install Pages/install
     cd Pages
-    git add .
-    git commit -m "${description}"
-    git push origin gh-pages
+    info "Pushing gh-pages branch"
+    git add . && \
+    git commit -m "${description}" && \
+    git push origin gh-pages && \
+    ok "Brach gh-pages sucessfully deployed\n" 
   fi
 
   cd "${SCRIPT_DIR}"
-  git add .
-  git commit -m "${description}"
-  git push origin master
+  info "Pushing master branch"
+  git add . && \
+  git commit -m "${description}" && \
+  git push origin master && \
+  ok "Brach master sucessfully deployed\n"
 }
 
 [[ "$#" == "0" ]] && usage && exit 0
