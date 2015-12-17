@@ -21,7 +21,7 @@ source ~/bin/common.sh && common_update
 To setup the project for the first time, execute this to clone all the required branches and create the right structure
 
 ```
-curl -s http://cs.johandry.com/deploy | bash --setup
+curl -s http://cs.johandry.com/deploy | bash
 ```
 
 To push a modification deploy the changes with the ``deploy`` script.

@@ -19,20 +19,12 @@ VERSION='1.0.0'
 TITLE='Cloud Scripts Setup'
 GITHUB_PROJECT="CS"
 
-source ~/bin/common.sh
-
-DEBUG=1
-
 # If not set, the WORKSPACE Directory is the current directory
 WORKSPACE_DIR='.'
-
-setup () {
-  [[ -n ${WORKSPACE_DIR} ]] && cd ${WORKSPACE_DIR}
-  mkdir CloudScripts && cd $_
-  git clone git@github.com:johandry/${GITHUB_PROJECT}.git
-  git clone -b gh-pages git@github.com:johandry/CS.git Pages
-}
-
 [[ "$1" == "-ws" ]] && WORKSPACE_DIR="$2"
 
-setup
+[[ -n ${WORKSPACE_DIR} ]] && cd ${WORKSPACE_DIR}
+mkdir CloudScripts && cd $_
+git clone git@github.com:johandry/${GITHUB_PROJECT}.git
+git clone -b gh-pages git@github.com:johandry/CS.git Pages
+
