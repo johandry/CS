@@ -35,6 +35,19 @@ setup () {
   git clone -b gh-pages git@github.com:johandry/CS.git Pages
 }
 
+git_push () {
+  branch=$1
+  description=$2
+
+  info "Starting to push ${branch} branch"
+  git add . && \
+  git commit -m "${description}" && \
+  git push origin ${branch} && \
+  ok "Brach ${branch} sucessfully deployed\n" 
+
+  [[ $? -ne 0 ]] && warn "Deployment of brach ${branch} not required or failed"
+}
+
 deploy () {
   description=$1
 
@@ -51,26 +64,14 @@ deploy () {
   cd "${SCRIPT_DIR}/.."
   if ! ef "${GITHUB_PROJECT}/install" "Pages/install" || ! ef "${GITHUB_PROJECT}/deploy" "Pages/deploy"
     then
-    info "New version of 'install' ready to be deployed in gh-pages branch"
     cp ${GITHUB_PROJECT}/install Pages/install
+    cp ${GITHUB_PROJECT}/deploy Pages/deploy
     cd Pages
-    info "Starting to push gh-pages branch"
-    git add . && \
-    git commit -m "${description}" && \
-    git push origin gh-pages && \
-    ok "Brach gh-pages sucessfully deployed\n" 
-
-    [[ $? -ne 0 ]] && warn "Deployment of brach gh-pages not required or failed"
+    git_push 'gh-pages' "${description}"
   fi
 
   cd "${SCRIPT_DIR}"
-  info "Starting to push master branch"
-  git add . && \
-  git commit -m "${description}" && \
-  git push origin master && \
-  ok "Brach master sucessfully deployed\n"
-
-  [[ $? -ne 0 ]] && warn "Deployment of brach master not required or failed"
+  git_push 'master' "${description}"
 }
 
 [[ "$#" == "0" ]] && usage && exit 0
