@@ -54,7 +54,7 @@ deploy () {
     info "New version of 'install' ready to be deployed in gh-pages branch"
     cp ${GITHUB_PROJECT}/install Pages/install
     cd Pages
-    info "Pushing gh-pages branch"
+    info "Starting to push gh-pages branch"
     git add . && \
     git commit -m "${description}" && \
     git push origin gh-pages && \
@@ -62,7 +62,7 @@ deploy () {
   fi
 
   cd "${SCRIPT_DIR}"
-  info "Pushing master branch"
+  info "Starting to push master branch"
   git add . && \
   git commit -m "${description}" && \
   git push origin master && \
