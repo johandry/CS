@@ -60,6 +60,7 @@ deploy () {
     git push origin gh-pages && \
     ok "Brach gh-pages sucessfully deployed\n" 
 
+    echo $?
     [[ $? -ne 0 ]] && error "Deployment of brach gh-pages failed"
   fi
 
@@ -70,6 +71,7 @@ deploy () {
   git push origin master && \
   ok "Brach master sucessfully deployed\n"
 
+  echo $?
   [[ $? -ne 0 ]] && error "Deployment of brach master failed"
 }
 
