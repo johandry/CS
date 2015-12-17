@@ -59,6 +59,8 @@ deploy () {
     git commit -m "${description}" && \
     git push origin gh-pages && \
     ok "Brach gh-pages sucessfully deployed\n" 
+
+    [[ $? -ne 0 ]] && error "Deployment of brach gh-pages failed"
   fi
 
   cd "${SCRIPT_DIR}"
@@ -67,6 +69,8 @@ deploy () {
   git commit -m "${description}" && \
   git push origin master && \
   ok "Brach master sucessfully deployed\n"
+
+  [[ $? -ne 0 ]] && error "Deployment of brach master failed"
 }
 
 [[ "$#" == "0" ]] && usage && exit 0
