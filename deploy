@@ -7,10 +7,8 @@
 # Usage: {script_name} <option>
 #
 # Options:
-#     -h, --help    Display this help message. bash {script_name} -h
-#     -m            Modification short description to be used in the commit
-#     -ws           Set the workspace directory. By default is the current directory
-#     --setup       Create/Setup the project structure in the workspace directory
+#     -h, --help          Display this help message. bash {script_name} -h
+#     -m '<description>'  Modification short description to be used in the commit
 #
 # Description: Script to promote changes to production
 #
@@ -27,13 +25,6 @@ DEBUG=1
 
 # If not set, the WORKSPACE Directory is the current directory
 WORKSPACE_DIR=.
-
-setup () {
-  [[ -z ${WORKSPACE_DIR} ]] && cd ${WORKSPACE_DIR}
-  mkdir CloudScripts && cd $_
-  git clone git@github.com:johandry/${GITHUB_PROJECT}.git
-  git clone -b gh-pages git@github.com:johandry/CS.git Pages
-}
 
 git_push () {
   branch=$1
@@ -62,10 +53,10 @@ deploy () {
   [[ ! -d "${SCRIPT_DIR}/../${GITHUB_PROJECT}" ]] && error "Incorrect master directory name"
 
   cd "${SCRIPT_DIR}/.."
-  if ! ef "${GITHUB_PROJECT}/install" "Pages/install" || ! ef "${GITHUB_PROJECT}/deploy" "Pages/deploy"
+  if ! ef "${GITHUB_PROJECT}/install" "Pages/install" || ! ef "${GITHUB_PROJECT}/setup" "Pages/setup"
     then
     cp ${GITHUB_PROJECT}/install Pages/install
-    cp ${GITHUB_PROJECT}/deploy Pages/deploy
+    cp ${GITHUB_PROJECT}/setup Pages/setup
     cd Pages
     git_push 'gh-pages' "${description}"
   fi
@@ -76,26 +67,8 @@ deploy () {
 
 [[ "$#" == "0" ]] && usage && exit 0
 
-action=
-description=
+[[ "$1" == "-m" ]] && description="$2"
 
-while (( $# ))
-do
-  case $1 in
-    -m)
-      description=$2
-      shift
-      action="deploy '${description}'"
-    ;;
-    --setup)
-      action='setup'
-    ;;
-    -ws)
-      WORKSPACE_DIR=$2
-      shift
-    ;;
-  esac
-  shift
-done
+[[ -z "${description}" ]] && error "The deployment need a description of the change"
 
-eval "$action"
+deploy "${description}"
