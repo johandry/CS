@@ -31,7 +31,7 @@ git_push () {
   description=$2
 
   info "Starting to push ${branch} branch"
-  git add -A :/ && \
+  git add -A  && \
   git commit -m "${description}" && \
   git push origin ${branch} && \
   ok "Brach ${branch} sucessfully deployed\n" 
