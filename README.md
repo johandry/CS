@@ -15,7 +15,7 @@ Once the scripts are installed, they can be updated with the parameter ``--updat
 If you only want to update the Common Utility script, execute:
 
 ```
-source ~/bin/common.sh && this_update
+bash ~/bin/common.sh --update
 ```
 ##Maintenance
 To setup the project for the first time, execute this to clone all the required branches and create the right structure

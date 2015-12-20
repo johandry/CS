@@ -20,7 +20,7 @@ SCRIPT_NAME="$( basename "$0" )"
 LOG_FILE="$(mktemp -t ${SCRIPT_NAME%.*}.XXXXXX).log"
 
 GITHUB_RAW="https://raw.githubusercontent.com/johandry"
-[[ -z ${SOURCE} ]] && SOURCE="${GITHUB_RAW}/${PROJECT}/master/${SOURCE_DIR}/${SCRIPT_NAME}"
+[[ -z ${SOURCE} ]] && SOURCE="${GITHUB_RAW}/${PROJECT}/master/${SOURCE_DIR}${SCRIPT_NAME}"
 
 # Every script should have these lines
 # VERSION=
@@ -171,8 +171,12 @@ this_version () {
 }
 
 show_version () {
-  version "${SCRIPT_NAME}" "${SOURCE}" "VERSION" "${VERSION}" "${TITLE}" "${SCRIPT_DIR}"
-  indent
+  # Do you want the version of a script or to common.sh?
+  if [[ "${SCRIPT_NAME}" != "${THIS_SCRIPT_NAME}" ]]
+    then
+    version "${SCRIPT_NAME}" "${SOURCE}" "VERSION" "${VERSION}" "${TITLE}" "${SCRIPT_DIR}"
+    indent
+  fi
   this_version
 
   exit 0
@@ -218,8 +222,12 @@ this_update () {
 }
 
 update_me () {
-  update "${SCRIPT_DIR}" "${SCRIPT_NAME}" "${SOURCE}" "${TITLE}"
-  indent
+  # Is this an update to a script or to common.sh?
+  if [[ "${SCRIPT_NAME}" != "${THIS_SCRIPT_NAME}" ]]
+    then
+    update "${SCRIPT_DIR}" "${SCRIPT_NAME}" "${SOURCE}" "${TITLE}"
+    indent
+  fi
   this_update
 
   exit 0

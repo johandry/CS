@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
+VERSION='1.1.2'
+TITLE='Servers Management'
+GITHUB_PROJECT="CS"
+SOURCE_DIR=
+
 #=======================================================================================================
 # Author: Johandry Amador <johandry@gmail.com>
 # Title:  Servers Management
+# Version: {version}
 #
 # Usage: {script_name} <action>
 #
@@ -33,12 +39,8 @@
 #   Create file(s) with '.servers' extension to list all the servers to have access. These files will be in the ./servers/ directory
 #   All the files transfered from a server will be stored in the ./files/ directory.
 #
-# Report Issues or create Pull Requests in http://github.com/johandry/
+# Report Issues or create Pull Requests in http://github.com/johandry/{project_name}
 #=======================================================================================================
-
-VERSION='1.1.2'
-TITLE='Servers Management'
-GITHUB_PROJECT="CS"
 
 source ~/bin/common.sh
 

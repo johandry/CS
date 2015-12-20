@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+VERSION='1.0.0'
+TITLE='Bash Template'
+PROJECT="CS"
+SOURCE_DIR="templates/"
+# SOURCE=
+
 #=======================================================================================================
 # Author: Johandry Amador <johandry@gmail.com>
 # Title:  {title}
@@ -17,12 +23,6 @@
 #
 # Report Issues or create Pull Requests in http://github.com/johandry/{project_name}
 #=======================================================================================================
-
-VERSION='1.0.0'
-TITLE='Bash Template'
-PROJECT="CS"
-SOURCE_DIR="templates"
-# SOURCE=
 
 source ~/bin/common.sh
 
