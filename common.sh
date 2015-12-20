@@ -32,7 +32,7 @@ GITHUB_RAW="https://raw.githubusercontent.com/johandry"
 #
 # source ~/bin/common.sh
 
-THIS_VERSION='1.0.4'
+THIS_VERSION='1.0.5'
 THIS_TITLE='Common Utilities'
 THIS_PROJECT="CS"
 THIS_SCRIPT_DIR="$HOME/bin"
