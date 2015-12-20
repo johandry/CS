@@ -21,6 +21,8 @@
 VERSION='1.0.0'
 TITLE='Bash Template'
 PROJECT="CS"
+SOURCE_DIR="templates"
+# SOURCE=
 
 source ~/bin/common.sh
 

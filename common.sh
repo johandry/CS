@@ -20,21 +20,24 @@ SCRIPT_NAME="$( basename "$0" )"
 LOG_FILE="$(mktemp -t ${SCRIPT_NAME%.*}.XXXXXX).log"
 
 GITHUB_RAW="https://raw.githubusercontent.com/johandry"
-SOURCE="${GITHUB_RAW}/${PROJECT}/master/${SCRIPT_NAME}"
+[[ -z ${SOURCE} ]] && SOURCE="${GITHUB_RAW}/${PROJECT}/master/${SOURCE_DIR}/${SCRIPT_NAME}"
 
 # Every script should have these lines
 # VERSION=
 # TITLE=
-# PROJECT="CS"
+# PROJECT=
+# SOURCE_DIR=
+# - or -
+# SOURCE=
 #
 # source ~/bin/common.sh
 
-COMMON_VERSION='1.0.4'
-COMMON_TITLE='Common Utilities'
-COMMON_PROJECT="CS"
-COMMON_SCRIPT_DIR="$HOME/bin"
-COMMON_SCRIPT_NAME="common.sh"
-COMMON_SOURCE="${GITHUB_RAW}/${COMMON_PROJECT}/master/${COMMON_SCRIPT_NAME}"
+THIS_VERSION='1.0.4'
+THIS_TITLE='Common Utilities'
+THIS_PROJECT="CS"
+THIS_SCRIPT_DIR="$HOME/bin"
+THIS_SCRIPT_NAME="common.sh"
+THIS_SOURCE="${GITHUB_RAW}/${THIS_PROJECT}/master/${THIS_SCRIPT_NAME}"
 
 # Set DEBUG to 1 using argument --debug in case you need it.
 DEBUG=0
@@ -163,14 +166,14 @@ version () {
   rm "${tmpfile}"
 }
 
-common_version () {
-  version "${COMMON_SCRIPT_NAME}" "${COMMON_SOURCE}" "COMMON_VERSION" "${COMMON_VERSION}" "${COMMON_TITLE}" "${COMMON_SCRIPT_DIR}"
+this_version () {
+  version "${THIS_SCRIPT_NAME}" "${THIS_SOURCE}" "THIS_VERSION" "${THIS_VERSION}" "${THIS_TITLE}" "${THIS_SCRIPT_DIR}"
 }
 
 show_version () {
   version "${SCRIPT_NAME}" "${SOURCE}" "VERSION" "${VERSION}" "${TITLE}" "${SCRIPT_DIR}"
   indent
-  common_version
+  this_version
 
   exit 0
 }
@@ -210,14 +213,14 @@ update () {
   fi
 }
 
-common_update () {
-  update "${COMMON_SCRIPT_DIR}" "${COMMON_SCRIPT_NAME}" "${COMMON_SOURCE}" "${COMMON_TITLE}"
+this_update () {
+  update "${THIS_SCRIPT_DIR}" "${THIS_SCRIPT_NAME}" "${THIS_SOURCE}" "${THIS_TITLE}"
 }
 
 update_me () {
   update "${SCRIPT_DIR}" "${SCRIPT_NAME}" "${SOURCE}" "${TITLE}"
   indent
-  common_update
+  this_update
 
   exit 0
 }
