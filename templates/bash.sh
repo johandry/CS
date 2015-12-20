@@ -15,12 +15,12 @@
 #
 # Description: {title} is a script to ...
 #
-# Report Issues or create Pull Requests in http://github.com/johandry/
+# Report Issues or create Pull Requests in http://github.com/johandry/{project_name}
 #=======================================================================================================
 
 VERSION='1.0.0'
 TITLE='Bash Template'
-GITHUB_PROJECT="CS"
+PROJECT="CS"
 
 source ~/bin/common.sh
 

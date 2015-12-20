@@ -20,21 +20,21 @@ SCRIPT_NAME="$( basename "$0" )"
 LOG_FILE="$(mktemp -t ${SCRIPT_NAME%.*}.XXXXXX).log"
 
 GITHUB_RAW="https://raw.githubusercontent.com/johandry"
-SOURCE="${GITHUB_RAW}/${GITHUB_PROJECT}/master/${SCRIPT_NAME}"
+SOURCE="${GITHUB_RAW}/${PROJECT}/master/${SCRIPT_NAME}"
 
 # Every script should have these lines
 # VERSION=
 # TITLE=
-# GITHUB_PROJECT="CS"
+# PROJECT="CS"
 #
 # source ~/bin/common.sh
 
 COMMON_VERSION='1.0.4'
 COMMON_TITLE='Common Utilities'
-COMMON_GITHUB_PROJECT="CS"
+COMMON_PROJECT="CS"
 COMMON_SCRIPT_DIR="$HOME/bin"
 COMMON_SCRIPT_NAME="common.sh"
-COMMON_SOURCE="${GITHUB_RAW}/${COMMON_GITHUB_PROJECT}/master/${COMMON_SCRIPT_NAME}"
+COMMON_SOURCE="${GITHUB_RAW}/${COMMON_PROJECT}/master/${COMMON_SCRIPT_NAME}"
 
 # Set DEBUG to 1 using argument --debug in case you need it.
 DEBUG=0
@@ -99,6 +99,7 @@ usage () {
   sed   -e "s/{script_name}/${SCRIPT_NAME}/g"
   sed   -e "s/{title}/${TITLE}/g"
   sed   -e "s/{version}/${VERSION}/g"
+  sed   -e "s/{project_name}/${PROJECT}/g"
   echo
 
   exit 0
