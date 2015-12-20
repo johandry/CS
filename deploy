@@ -2,7 +2,7 @@
 
 #=======================================================================================================
 # Author: Johandry Amador <johandry@gmail.com>
-# Title:  Cloud Scripts Deployment
+# Title:  {title}
 #
 # Usage: {script_name} <option>
 #
@@ -12,12 +12,12 @@
 #
 # Description: Script to promote changes to production
 #
-# Report Issues or create Pull Requests in http://github.com/johandry/CS
+# Report Issues or create Pull Requests in http://github.com/johandry/{project_name}
 #=======================================================================================================
 
 VERSION='1.0.0'
 TITLE='Cloud Scripts Deployment'
-GITHUB_PROJECT="CS"
+PROJECT="CS"
 
 source ~/bin/common.sh
 
@@ -47,16 +47,16 @@ deploy () {
     then
     # Go to your Workspace directory
     cd "${SCRIPT_DIR}/.."
-    git clone -b gh-pages git@github.com:johandry/${GITHUB_PROJECT}.git Pages
+    git clone -b gh-pages git@github.com:johandry/${PROJECT}.git Pages
   fi
 
-  [[ ! -d "${SCRIPT_DIR}/../${GITHUB_PROJECT}" ]] && error "Incorrect master directory name"
+  [[ ! -d "${SCRIPT_DIR}/../${PROJECT}" ]] && error "Incorrect master directory name"
 
   cd "${SCRIPT_DIR}/.."
-  if ! ef "${GITHUB_PROJECT}/install" "Pages/install" || ! ef "${GITHUB_PROJECT}/setup" "Pages/setup"
+  if ! ef "${PROJECT}/install" "Pages/install" || ! ef "${PROJECT}/setup" "Pages/setup"
     then
-    cp ${GITHUB_PROJECT}/install Pages/install
-    cp ${GITHUB_PROJECT}/setup Pages/setup
+    cp ${PROJECT}/install Pages/install
+    cp ${PROJECT}/setup Pages/setup
     cd Pages
     git_push 'gh-pages' "${description}"
   fi
