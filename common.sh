@@ -97,6 +97,8 @@ usage () {
   sed   -e 's/^#\(.*\)/\1/' |
   sed   -e 's/^ \(.*\)/\1/' |
   sed   -e "s/{script_name}/${SCRIPT_NAME}/g"
+  sed   -e "s/{title}/${TITLE}/g"
+  sed   -e "s/{version}/${VERSION}/g"
   echo
 
   exit 0
@@ -228,3 +230,5 @@ do
 done
 
 # Remember to exclude --debug in your parameter parsing.
+# TODO: Eliminate --debug from parameters list
+
