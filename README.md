@@ -30,3 +30,7 @@ To push a modification deploy the changes with the ``deploy`` script.
 ./deploy -m 'Description of the change'
 ```
 
+##TODO, Ideas & Work in progress
+
+* Create a ~/.servers directory *.servers files. If there is no *.servers file in current directory, search there.
+* Make servers files instead of entries in a file. Useful to auto-complete and store notes and data inside a server file.
