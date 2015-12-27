@@ -97,13 +97,14 @@ indent () {
 }
 
 usage () {
-  sed  -ne '/^# Usage/,/^# Report/p' "${0}" |
-  sed   -e 's/^#\(.*\)/\1/' |
-  sed   -e 's/^ \(.*\)/\1/' |
-  sed   -e "s/{script_name}/${SCRIPT_NAME}/g"
-  sed   -e "s/{title}/${TITLE}/g"
-  sed   -e "s/{version}/${VERSION}/g"
-  sed   -e "s/{project_name}/${PROJECT}/g"
+  sed -ne '/^# Usage/,/^# Report/p' "${0}" |
+  sed -e 's/^#\(.*\)/\1/' |
+  sed -e 's/^ \(.*\)/\1/' |
+  sed -e "s/{script_name}/${SCRIPT_NAME}/g" |
+  sed -e "s/{title}/${TITLE}/g" |
+  sed -e "s/{version}/${VERSION}/g" |
+  sed -e "s/{project_name}/${PROJECT}/g"
+        
   echo
 
   exit 0

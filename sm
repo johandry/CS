@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION='1.1.3'
+VERSION='1.1.4'
 TITLE='Servers Management'
 GITHUB_PROJECT="CS"
 SOURCE_DIR=
@@ -120,7 +120,7 @@ print_passwdless_access_to() {
 
 print_passwdless_access_to_all_servers() {
   rm -f no_access.servers
-  for server in $(cat *.servers); do
+  for server in $(get_servers_from *.servers); do
     access=$(check_passwdless_access_to ${server})
     if [[ ${access} -eq 0 ]]
       then
@@ -135,10 +135,10 @@ print_passwdless_access_to_all_servers() {
 print_passwdless_access_to_servers_in_file(){
   file=$1
   [[ -z "${file}" ]] && error "Missing file" && exit 1
-  [ ! -e "${file}" ]] && error "File ${file} not found" && exit 1
+  [[ ! -e "${file}" ]] && error "File ${file} not found" && exit 1
 
   rm -f no_access.servers
-  for server in $(cat $file); do
+  for server in $(get_servers_from $file); do
     access=$(check_passwdless_access_to ${server})
     if [[ ${access} -eq 0 ]]
       then
@@ -160,7 +160,7 @@ copy_ssh_public_key_to() {
 }
 
 copy_ssh_public_key_to_all_servers() {
-  for server in $(cat ./*.servers); do
+  for server in $(get_servers_from ./*.servers); do
     access=$(check_passwdless_access_to ${server})
     if [[ ${access} -eq 0 ]]
       then
@@ -183,7 +183,7 @@ copy_ssh_public_key_to_servers_in_file() {
   [[ -z "${file}" ]] && error "Missing file" && exit 1
   [[ ! -e "${file}" ]] && error "File ${file} not found" && exit 1
 
-  for server in $(cat ${file}); do
+  for server in $(get_servers_from ${file}); do
     access=$(check_passwdless_access_to ${server})
     if [[ ${access} -eq 0 ]]
       then
@@ -204,7 +204,7 @@ copy_ssh_public_key_to_servers_in_file() {
 list_all_servers() {
   [[ -z "$(ls *.servers 2>/dev/null)" ]] && error "No servers file found" && exit 1
   
-  for server in $(cat *.servers); do
+  for server in $(get_servers_from *.servers); do
     echo ${server}
   done
 }
@@ -252,6 +252,10 @@ get_server_from() {
   servers=$( grep -hi ${server} *.servers | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
   [[ $count -eq 1 ]] && echo ${servers%??} && return
   echo ''
+}
+
+get_servers_from() {
+  grep -v '^#' $1
 }
 
 validate_server() {
@@ -324,7 +328,7 @@ exec_command_to_servers_in_file() {
   [[ -z "${file}" ]] && error "Missing file" && exit 1
   [[ ! -e "${file}" ]] && error "File ${file} not found" && exit 1
   validate_command "$command"
-  for server in $(cat ${file}); do
+  for server in $(get_servers_from ${file}); do
     exec_command_to "${command}" ${server}
     echo
   done
