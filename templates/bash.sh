@@ -24,6 +24,11 @@ SOURCE_DIR="templates/"
 # Report Issues or create Pull Requests in http://github.com/johandry/{project_name}
 #=======================================================================================================
 
+[[ ! -e "$HOME/bin/common.sh" ]] && \
+  echo "~/bin/common.sh not found, install it with: " && \
+  echo "    curl -s http://cs.johandry.com/install | bash" && \
+  exit 1
+
 source ~/bin/common.sh
 
 [[ "$#" == "0" ]] && usage && exit 0

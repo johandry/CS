@@ -68,6 +68,7 @@ log () {
 error () {
   # Red [ERROR]
   log "ERROR" "${1}" 91
+  [[ $2 == '-ec' ]] && exit $3
 }
 
 ok () {
