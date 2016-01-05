@@ -108,7 +108,7 @@ check_passwdless_access_to() {
 print_passwdless_access_to() {
   [[ -z ${1} ]] && error "Enter a server" && exit 1
   validate_server $1
-  server=$(get_server_from $1)
+  server=$(get_server $1)
   access=$(check_passwdless_access_to ${server})
   if [[ ${access} -eq 0 ]]
     then
@@ -153,7 +153,7 @@ print_passwdless_access_to_servers_in_file(){
 copy_ssh_public_key_to() {
   server=$1
   validate_server ${server}
-  server=$(get_server_from ${server})
+  server=$(get_server ${server})
 
   info "Copying SSH key to ${server}"
   cat ~/.ssh/id_rsa.pub | ssh ${USER}@${server} 'cat > authorized_keys && mkdir -p .ssh && chmod 700 .ssh && mv authorized_keys .ssh/ && chmod 600 .ssh/authorized_keys' 2>/dev/null
@@ -242,10 +242,14 @@ list_server() {
   warn "No servers were found matching: ${not_found%??}"
 }
 
-get_server_from() {
+get_server() {
   server=$1
-  count=$( grep -hi ${server} *.servers | sort | uniq | wc -l | sed 's/^ *//' )
-  servers=$( grep -hi ${server} *.servers | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
+  servers_file=./*.servers
+  [[ -z "$(ls ${servers_file} 2>/dev/null)" ]] && \
+    servers_file=$HOME/.sm.servers
+
+  count=$( grep -hi ${server} ${servers_file} | sort | uniq | wc -l | sed 's/^ *//' )
+  servers=$( grep -hi ${server} ${servers_file} | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
   [[ $count -eq 1 ]] && echo ${servers%??} && return
   echo ''
 }
@@ -267,7 +271,7 @@ validate_server() {
 
 ssh_to() {
   validate_server $1
-  server=$(get_server_from $1)
+  server=$(get_server $1)
 
   mode=${2:---newtab}
   if [[ "${mode}" == "--newtab" ]]
@@ -287,7 +291,7 @@ scp_file_to() {
   [[ -z "${file}" ]] && error "Missing file" && exit 1
   [[ ! -f ${file} ]] && error "File ${file} does not exists" && exit 1
   validate_server $2
-  server=$(get_server_from $2)
+  server=$(get_server $2)
   file_name=${file##*/}
   info "Transfering ${file} to ${server} in /home/${USER}/${file_name}"
   scp "${file}" ${USER}@${server}:/home/${USER}/${file_name} 2>/dev/null
@@ -301,7 +305,7 @@ get_file_from() {
   file=$1
   [[ -z "${file}" ]] && error "Missing file" && exit 1
   validate_server $2
-  server=$(get_server_from $2)
+  server=$(get_server $2)
 
   check=$(ssh -q ${USER}@${server} "[[ -e ${file} ]] && echo OK")
   [[ $check != 'OK' ]] && error "File ${file} not found in server ${server}" && exit 1
@@ -337,7 +341,7 @@ exec_command_to() {
   command=$1
   validate_command "$command"
   validate_server $2
-  server=$(get_server_from $2)
+  server=$(get_server $2)
   info "Executing in ${server} as ${USER} the command '${command}'"
   remote_command="source ~/.bash_profile && ${command}"
   FLAGS="-q"
@@ -521,6 +525,7 @@ do
   shift
 done
 
+debug $action
 eval "${action}"
 
 ## Useful one-liners:
