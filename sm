@@ -36,8 +36,8 @@ SOURCE_DIR=
 #                                 In OSX Terminal, the new session will be open in a new tab by default (-newtab). Use --local to open it in the current tab.
 #
 # Description: This script is to execute some actions to the servers listed in the environment servers files.
-#   Create file(s) with '.servers' extension to list all the servers to have access. These files will be in the ./servers/ directory
-#   All the files transfered from a server will be stored in the ./files/ directory.
+#   Create file(s) with '.servers' extension to list all the servers to have access. 
+#   These files will be in the current directory. If not found, will search on ~/.sm.servers
 #
 # Report Issues or create Pull Requests in http://github.com/johandry/{project_name}
 #=======================================================================================================
@@ -202,15 +202,21 @@ copy_ssh_public_key_to_servers_in_file() {
 }
 
 list_all_servers() {
-  [[ -z "$(ls *.servers 2>/dev/null)" ]] && error "No servers file found" && exit 1
+  servers_file=./*.servers
+  [[ -z "$(ls ${servers_file} 2>/dev/null)" ]] && \
+    warn "No servers file found in this directory. Using global servers file." && \
+    servers_file=$HOME/.sm.servers
   
-  for server in $(get_servers_from *.servers); do
+  for server in $(get_servers_from ${servers_file}); do
     echo ${server}
   done
 }
 
 list_server() {
-  [[ -z "$(ls *.servers 2>/dev/null)" ]] && error "No servers file found" && exit 1
+  servers_file=./*.servers
+  [[ -z "$(ls ${servers_file} 2>/dev/null)" ]] && \
+    warn "No servers file found in this directory. Using global servers file." && \
+    servers_file=$HOME/.sm.servers
 
   quite=
   [[ $1 == "-q" ]] && shift && quite=yes
@@ -218,25 +224,15 @@ list_server() {
 
   for server in "$@"
   do
-    environments=$( grep ${server} *.servers | sed 's/\(.*\)\.servers.*/\1/' | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
-    if [[ -z ${environments} ]]
+    # environments=$( grep ${server} ${servers_file} | sed 's/\(.*\)\.servers.*/\1/' | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
+    servers=$( grep -h ${server} ${servers_file} | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
+    if [[ -z ${servers} ]]
       then
       not_found="${server}, ${not_found}"
     else
-      servers=$( grep -h ${server} *.servers | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
       count_servers=$( grep -o ", " <<< "${servers}" | wc -l | sed 's/^ *//' )
-      if [[ ${count_servers} -gt 1 ]]
-        then
-        server_pl="s"
-        server_is="are"
-      else
-        server_pl=""
-        server_is="is"
-      fi
-      count_environments=$( grep -o ", " <<< "${environments}" | wc -l | sed 's/^ *//' )
-      environment_pl=
-      [[ ${count_environments} -gt 1 ]] && environment_pl="s"
-      [[ -z "$quite" ]] && ok "Server${server_pl} ${servers%??} match for '${server}' and ${server_is} in the environment${environment_pl} ${environments%??}"
+      server_pl="" ; [[ ${count_servers} -gt 1 ]] && server_pl="s"
+      [[ -z "$quite" ]] && ok "Server${server_pl} ${servers%??} match for '${server}'"
     fi
   done
 
@@ -255,13 +251,16 @@ get_server_from() {
 }
 
 get_servers_from() {
-  grep -v '^#' $1
+  file=$1
+  grep -v '^#' ${file}
 }
 
 validate_server() {
   server=$1
-  count=$( grep -hi ${server} *.servers | sort | uniq | wc -l | sed 's/^ *//' )
-  servers=$( grep -hi ${server} *.servers | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
+  servers_file=./*.servers
+  [[ -z "$(ls ${servers_file} 2>/dev/null)" ]] && servers_file=$HOME/.sm.servers
+  count=$( grep -hi ${server} ${servers_file} | sort | uniq | wc -l | sed 's/^ *//' )
+  servers=$( grep -hi ${server} ${servers_file} | sort | uniq | tr '\n' ',' | sed 's/,/, /g' )
   [[ $count -gt 1 ]] && warn "More than one server match with '${server}' (${servers%??}). Provide a better matching string." && exit 0
   [[ $count -eq 0 ]] && error "No server match with '${server}'" && exit 1
 }
@@ -413,7 +412,7 @@ do
           list_usage
           exit 1
         else
-          action="list_server \"${@:2}\""
+          action="list_server ${@:2}"
           shift $(($# - 1)) # remove -q and all the servers
         fi
       else
@@ -423,7 +422,7 @@ do
           list_usage
           exit 1
         else
-          action="list_server \"${@:2}\""
+          action="list_server ${@:2}"
           shift $(($# - 1)) # remove all the servers
         fi
       fi
@@ -522,7 +521,7 @@ do
   shift
 done
 
-eval "$action"
+eval "${action}"
 
 ## Useful one-liners:
 
