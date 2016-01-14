@@ -88,7 +88,7 @@ info () {
 
 debug () {
   # Purple [DEBUG]
-  (( ${DEBUG} )) && log "DEBUG" "${1}" 92
+  (( ${DEBUG} )) && log "DEBUG" "${1}" 95
 }
 
 indent () {
