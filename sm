@@ -36,7 +36,7 @@ SOURCE_DIR=
 #                                 In OSX Terminal, the new session will be open in a new tab by default (-newtab). Use --local to open it in the current tab.
 #
 # Description: This script is to execute some actions to the servers listed in the environment servers files.
-#   Create file(s) with '.servers' extension to list all the servers to have access. 
+#   Create file(s) with '.servers' extension to list all the servers to have access.
 #   These files will be in the current directory. If not found, will search on ~/.sm.servers
 #
 # Report Issues or create Pull Requests in http://github.com/johandry/{project_name}
@@ -96,6 +96,17 @@ user_usage(){
 
 show_user() {
   info "Using \x1B[93;1m$USER\x1B[0m to login to the servers"
+}
+
+create_user_in() {
+  server=$1
+  validate_server ${server}
+  server=$(get_server ${server})
+
+  info "Creating your user (${USER}) in ${server}. Enter root password."
+  ssh root@${server} "useradd -c 'Johandry Amador' -G wheel -m ${USER}" 2>/dev/null
+  ssh root@${server} "echo -e \"sup3rp455w0rd\ncsup3rp455w0rd\" | (passwd --stdin ${USER})";
+  ssh root@${server} "sed -i.back 's/# %wheel\(.*\)NOPASSWD: ALL/%wheel\1NOPASSWD: ALL/' /etc/sudoers";
 }
 
 check_passwdless_access_to() {
@@ -206,7 +217,7 @@ list_all_servers() {
   [[ -z "$(ls ${servers_file} 2>/dev/null)" ]] && \
     warn "No servers file found in this directory. Using global servers file." && \
     servers_file=$HOME/.sm.servers
-  
+
   for server in $(get_servers_from ${servers_file}); do
     echo ${server}
   done
