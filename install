@@ -21,6 +21,7 @@ GITHUB_RAW="https://raw.githubusercontent.com/johandry"
 scripts=(
   "CS:$HOME/bin:common.sh:640"
   "CS:$HOME/bin:sm:750"
+  "CS:$HOME/bin:awskeys:750"
 )
 
 for script in ${scripts[@]}
