@@ -19,8 +19,3 @@ If you only want to update the Common Utility script, execute:
 ```bash
 bash ~/bin/common.sh --update
 ```
-
-## TODO, Ideas & Work in progress
-
-* Create a ~/.servers directory *.servers files. If there is no *.servers file in current directory, search there.
-* Make servers files instead of entries in a file. Useful to auto-complete and store notes and data inside a server file.
